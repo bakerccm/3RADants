@@ -1,6 +1,14 @@
-iTru_adaptors.csv [md5 b46fe9b9d191228a3d0089e1d9e6b496] is a UTF-8 CSV file giving information on inline barcodes used in this 3RAD sequencing.
+(1) barcodes and sample ID information
+
+sample_tags.csv [md5 84392c84ffe13b9c9f7477ce0d7ed656] is a UTF-8 CSV file giving information on inline barcodes used in this 3RAD sequencing.
 --> use this to extract information on barcodes for each sample well within each plate.
 
-- additionally, we need another file that connects sample wells within each plate to original samples 
+(2) reformat for use with stacks
 
-- putting these files together will allow us to generate barcode mapping files
+    # export a file for PJ
+        grep "^[123]," sample_tags.csv | awk -v FS=, -v OFS="\t" '{print $1,$3,$4,$5}' > sample_tags_PJ.tsv
+
+    # one file for each plate of samples
+        for plate in {1..8}; do
+            grep "^${plate}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{print $3,$4,$5}' > sample_tags_plate${plate}.tsv
+        done
