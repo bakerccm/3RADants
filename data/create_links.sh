@@ -1,4 +1,4 @@
-#!bin/bash
+#!/bin/bash
 
 # these commands create soft links to raw data files to rename them prior to demultiplexing
 
