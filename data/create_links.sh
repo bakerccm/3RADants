@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd /n/piercefs/protected/Users/cbaker/3RADants/data
+
 # these commands create soft links to raw data files to rename them prior to demultiplexing
 
 # plate 1
