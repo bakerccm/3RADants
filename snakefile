@@ -25,7 +25,7 @@ rule demultiplex_plate:
         directory("demultiplex/{plate}_demultiplexed")
     shell:
         """
-        rm -f "demultiplex/{wildcards.plate}_demultiplexed"
+        rm -rf "demultiplex/{wildcards.plate}_demultiplexed"
         mkdir "demultiplex/{wildcards.plate}_demultiplexed"
         process_radtags -P -p {input} -b barcodes/sample_tags_{wildcards.plate}.tsv -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI
         """
