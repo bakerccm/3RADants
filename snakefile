@@ -20,8 +20,8 @@ rule all:
 
 rule demultiplex_plate:
     input:
-        sequences:"data/links/{plate}"
-        barcodes:"barcodes/sample_tags_{plate}.tsv"
+        sequences="data/links/{plate}",
+        barcodes="barcodes/sample_tags_{plate}.tsv"
     output:
         directory("demultiplex/{plate}_demultiplexed")
     shell:
