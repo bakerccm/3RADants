@@ -10,6 +10,7 @@ sample_tags.csv [md5 84392c84ffe13b9c9f7477ce0d7ed656] is a UTF-8 CSV file givin
 
     # one file for each plate of samples
     # note addition of G and T at end of tags (between tag and restriction site)
+    # note also replacement of '/' with '-' since only letters, numbers, '.', '-' and '_' are allowed by process_radtags
         for plate in {1..8}; do
-            grep "^${plate}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{print $3"G",$4"T",$5}' > sample_tags_plate${plate}.tsv
+            grep "^${plate}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{print $3"G",$4"T",$5}' | tr '/' '-' > sample_tags_plate${plate}.tsv
         done
