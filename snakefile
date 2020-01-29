@@ -1,3 +1,7 @@
+# loads the stacks module prior to any shell commands
+# see https://snakemake.readthedocs.io/en/stable/project_info/faq.html?highlight=shell.prefix#i-want-to-configure-the-behavior-of-my-shell-for-all-rules-how-can-that-be-achieved-with-snakemake
+shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
+
 # scripts adapted from those supplied by Jack Boyle
 
 rule all:
@@ -17,23 +21,26 @@ rule all:
 
 rule remove_clones:
     input:
-        file1="demultiplexed/plate3/COR051.1.fq.gz",
-        file2="demultiplexed/plate3/COR051.2.fq.gz"
+        # note that we're just ignoring the remainder files for now
+        file1="demultiplexed/{plate}/{sample}.1.fq.gz",
+        file2="demultiplexed/{plate}/{sample}.2.fq.gz"
     output:
-        dereplicated/plate3/
+        # unclear why it adds the extra numbers, but it does
+        file1="dereplicated/{plate}/{sample}.1.1.fq.gz",
+        file2="dereplicated/{plate}/{sample}.2.2.fq.gz"
     shell:
-        "clone_filter -1 pair_1 -2 pair_2] -o out_dir [-i type] [-y type] [-D] [-h]
-        #"clone_filter [-f in_file | -p in_dir [-P] [-I] | -1 pair_1 -2 pair_2] -o out_dir [-i type] [-y type] [-D] [-h]
-        #"clone_filter -P -p ./raw/ -i gzfastq -o ./filtered/ --null_index --oligo_len_2 8"
-
-
+        """
         clone_filter \
-        -1 demultiplexed/plate3/COR051.1.fq.gz \
-        -2 demultiplexed/plate3/COR051.2.fq.gz \
-        -o demultiplexed/plate3 --null_index -i gzfastq \
-        --oligo_len_2 8
+        -1 {input.file1} -2 {input.file2} \
+        -o dereplicated/{wildcards.plate}/{wildcards.sample} \
+        --null_index -i gzfastq --oligo_len_2 8
+        """
 
+        #"clone_filter -1 pair_1 -2 pair_2] -o out_dir [-i type] [-y type] [-D] [-h]
 
+        #"clone_filter [-f in_file | -p in_dir [-P] [-I] | -1 pair_1 -2 pair_2] -o out_dir [-i type] [-y type] [-D] [-h]
+
+        #"clone_filter -P -p ./raw/ -i gzfastq -o ./filtered/ --null_index --oligo_len_2 8"
 
 ################
 # step 1 in the stacks pipeline
