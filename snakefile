@@ -39,18 +39,18 @@ rule dereplicate_all:
     input:
         # file lists can be python lists
         # supply multiple lists separated by , or concatenate with +
-        ["dereplicated/plate" + plate_no + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]],
-        ["dereplicated/plate" + plate_no + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]]
+        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]],
+        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]]
 
 rule dereplicate_PJ:
     input:
-        ["dereplicated/plate" + plate_no + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]],
-        ["dereplicated/plate" + plate_no + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]]
+        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]],
+        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]]
 
 rule dereplicate_Brendan:
     input:
-        ["dereplicated/plate" + plate_no + "/" + sample + ".1.1.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]],
-        ["dereplicated/plate" + plate_no + "/" + sample + ".2.2.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]]
+        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".1.1.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]],
+        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".2.2.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]]
 
 ################
 # step 2 in the stacks pipeline
