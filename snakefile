@@ -69,7 +69,7 @@ rule remove_clones:
         """
         clone_filter \
         -1 {input.file1} -2 {input.file2} \
-        -o dereplicated/{wildcards.plate}/{wildcards.sample} \
+        -o dereplicated/{wildcards.plate} \
         --null_index -i gzfastq --oligo_len_2 8
         """
 
