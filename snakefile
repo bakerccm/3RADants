@@ -15,29 +15,42 @@ shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
 
 # get sample names from barcode files
 import pandas as pd
-SAMPLES={}
-PLATES=['plate' + str(i) for i in range(1,9)]
-for p in PLATES:
-    SAMPLES[p] = pd.read_table("barcodes/sample_tags_" + p + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
+SAMPLES = {}
+PLATE_NOS = [1,2,3,4,5,6,7,8]
+for plate_no in PLATE_NOS:
+    SAMPLES[plate_no] = pd.read_table("barcodes/sample_tags_plate" + plate_no + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
 
 ################
-rule all:
-    input:
-        "demultiplexed/plate1",
-        "demultiplexed/plate2",
-        "demultiplexed/plate3",
-        "demultiplexed/plate4",
-        "demultiplexed/plate5",
-        "demultiplexed/plate6",
-        "demultiplexed/plate7",
-        "demultiplexed/plate8"
+# rules to run parts of the pipeline
 
-rule dereplicated_files:
+rule demultiplex_all:
+    input:
+        expand("demultiplexed/plate{plate_no}}", plate_no in [1,2,3,4,5,6,7,8])
+
+rule demultiplex_PJ:
+    input:
+        expand("demultiplexed/plate{plate_no}}", plate_no in [1,2,3])
+
+rule demultiplex_Brendan:
+    input:
+        expand("demultiplexed/plate{plate_no}}", plate_no in [4,5,6,7,8])
+
+rule dereplicate_all:
     input:
         # file lists can be python lists
         # supply multiple lists separated by , or concatenate with +
-        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[plate]],
-        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[plate]]
+        ["dereplicated/plate" + plate_no + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]],
+        ["dereplicated/plate" + plate_no + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]]
+
+rule dereplicate_PJ:
+    input:
+        ["dereplicated/plate" + plate_no + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]],
+        ["dereplicated/plate" + plate_no + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]]
+
+rule dereplicate_Brendan:
+    input:
+        ["dereplicated/plate" + plate_no + "/" + sample + ".1.1.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]],
+        ["dereplicated/plate" + plate_no + "/" + sample + ".2.2.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]]
 
 ################
 # step 2 in the stacks pipeline
