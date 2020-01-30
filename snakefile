@@ -18,7 +18,7 @@ import pandas as pd
 SAMPLES = {}
 PLATE_NOS = [1,2,3,4,5,6,7,8]
 for plate_no in PLATE_NOS:
-    SAMPLES[plate_no] = pd.read_table("barcodes/sample_tags_plate" + plate_no + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
+    SAMPLES[plate_no] = pd.read_table("barcodes/sample_tags_plate" + str(plate_no) + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
 
 ################
 # rules to run parts of the pipeline
