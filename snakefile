@@ -31,7 +31,7 @@ rule all:
         "demultiplexed/plate7",
         "demultiplexed/plate8"
 
-rules dereplicated_files:
+rule dereplicated_files:
     input:
         ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]],
         ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]]
