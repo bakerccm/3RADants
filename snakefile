@@ -25,15 +25,15 @@ for plate_no in PLATE_NOS:
 
 rule demultiplex_all:
     input:
-        expand("demultiplexed/plate{plate_no}}", plate_no in [1,2,3,4,5,6,7,8])
+        expand("demultiplexed/plate{plate_no}", plate_no in [1,2,3,4,5,6,7,8])
 
 rule demultiplex_PJ:
     input:
-        expand("demultiplexed/plate{plate_no}}", plate_no in [1,2,3])
+        expand("demultiplexed/plate{plate_no}", plate_no in [1,2,3])
 
 rule demultiplex_Brendan:
     input:
-        expand("demultiplexed/plate{plate_no}}", plate_no in [4,5,6,7,8])
+        expand("demultiplexed/plate{plate_no}", plate_no in [4,5,6,7,8])
 
 rule dereplicate_all:
     input:
