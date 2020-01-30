@@ -36,8 +36,8 @@ rule dereplicated_files:
     input:
         # file lists can be python lists
         # supply multiple lists separated by , or concatenate with +
-        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]],
-        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]]
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[plate]]
 
 ################
 # step 2 in the stacks pipeline
