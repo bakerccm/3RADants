@@ -1,9 +1,25 @@
+# snakefile for processing 3RAD data from Brendan and PJ's ant and plant samples
+
+# Chris Baker
+# bakerccm@gmail.com
+# 29 January 2020
+
+# scripts adapted from those supplied by Jack Boyle
+
+################
+# preamble
+
 # loads the stacks module prior to any shell commands
 # see https://snakemake.readthedocs.io/en/stable/project_info/faq.html?highlight=shell.prefix#i-want-to-configure-the-behavior-of-my-shell-for-all-rules-how-can-that-be-achieved-with-snakemake
 shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
 
-# scripts adapted from those supplied by Jack Boyle
+# get sample names from barcode files
+SAMPLES={}
+PLATES=['plate' + str(i) for i in range(1,9)]
+for p in PLATES:
+    SAMPLES[p] = pd.read_table("sample_tags_" + p + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
 
+################
 rule all:
     input:
         "demultiplexed/plate1",
@@ -14,6 +30,11 @@ rule all:
         "demultiplexed/plate6",
         "demultiplexed/plate7",
         "demultiplexed/plate8"
+
+rules dereplicated_files:
+    input:
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]]
 
 ################
 # step 2 in the stacks pipeline
