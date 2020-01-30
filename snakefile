@@ -14,6 +14,7 @@
 shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
 
 # get sample names from barcode files
+import pandas as pd
 SAMPLES={}
 PLATES=['plate' + str(i) for i in range(1,9)]
 for p in PLATES:
@@ -33,6 +34,8 @@ rule all:
 
 rule dereplicated_files:
     input:
+        # file lists can be python lists
+        # supply multiple lists separated by , or concatenate with +
         ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]],
         ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in SAMPLES.keys() for sample in SAMPLES[i]]
 
