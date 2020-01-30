@@ -18,7 +18,7 @@ import pandas as pd
 SAMPLES={}
 PLATES=['plate' + str(i) for i in range(1,9)]
 for p in PLATES:
-    SAMPLES[p] = pd.read_table("sample_tags_" + p + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
+    SAMPLES[p] = pd.read_table("barcodes/sample_tags_" + p + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
 
 ################
 rule all:
