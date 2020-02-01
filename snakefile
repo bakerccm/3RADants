@@ -56,9 +56,10 @@ rule dereplicate_Brendan:
 # step 2 in the stacks pipeline
 # remove clones using UMIs, which are in the fastq headers
 
-rule remove_clones:
+rule dereplicate_sample:
     input:
         # note that we're just ignoring the remainder files for now
+        flag="demultiplexed/{plate}/demultiplex.done",
         file1="demultiplexed/{plate}/{sample}.1.fq.gz",
         file2="demultiplexed/{plate}/{sample}.2.fq.gz"
     output:
@@ -95,11 +96,9 @@ rule demultiplex_plate:
         sequences="data/links/{plate}",
         barcodes="barcodes/sample_tags_{plate}.tsv"
     output:
-        directory("demultiplexed/{plate}")
+        touch("demultiplexed/plate{plate_no}/demultiplex.done")
     shell:
         """
-        rm -rf "demultiplexed/{wildcards.plate}"
-        mkdir "demultiplexed/{wildcards.plate}"
         process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header
         """
 ################
