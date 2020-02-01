@@ -9,48 +9,53 @@
 ################
 # preamble
 
-# loads the stacks module prior to any shell commands
+# forces the stacks module to be loaded prior to running any shell commands
 # see https://snakemake.readthedocs.io/en/stable/project_info/faq.html?highlight=shell.prefix#i-want-to-configure-the-behavior-of-my-shell-for-all-rules-how-can-that-be-achieved-with-snakemake
 shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
 
 # get sample names from barcode files
 import pandas as pd
 SAMPLES = {}
-PLATE_NOS = [1,2,3,4,5,6,7,8]
-for plate_no in PLATE_NOS:
-    SAMPLES[plate_no] = pd.read_table("barcodes/sample_tags_plate" + str(plate_no) + ".tsv", header = None, names = ['row_index','col_index','sample'])['sample'].tolist()
+PLATES = ['plate' + str(plate_no) for plate_no in range(1,9)]  # plate1 through plate8
+for plate in PLATES:
+    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + ".tsv", header = None,
+        names = ['row_index','col_index','sample'])['sample'].tolist()
 
 ################
 # rules to run parts of the pipeline
 
-rule demultiplex_all:
-    input:
-        expand("demultiplexed/plate{plate_no}", plate_no = [1,2,3,4,5,6,7,8])
-
-rule demultiplex_PJ:
-    input:
-        expand("demultiplexed/plate{plate_no}", plate_no = [1,2,3])
-
-rule demultiplex_Brendan:
-    input:
-        expand("demultiplexed/plate{plate_no}", plate_no = [4,5,6,7,8])
-
-rule dereplicate_all:
-    input:
-        # file lists can be python lists
-        # supply multiple lists separated by , or concatenate with +
-        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]],
-        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3,4,5,6,7,8] for sample in SAMPLES[plate_no]]
-
-rule dereplicate_PJ:
-    input:
-        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".1.1.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]],
-        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".2.2.fq.gz" for plate_no in [1,2,3] for sample in SAMPLES[plate_no]]
+# dereplicate rules
 
 rule dereplicate_Brendan:
     input:
-        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".1.1.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]],
-        ["dereplicated/plate" + str(plate_no) + "/" + sample + ".2.2.fq.gz" for plate_no in [4,5,6,7,8] for sample in SAMPLES[plate_no]]
+        # file lists can be python lists
+        # supply multiple lists separated by , or concatenate with +
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]]
+
+rule dereplicate_PJ:
+    input:
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in ['plate1','plate2','plate3'] for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in ['plate1','plate2','plate3'] for sample in SAMPLES[plate]]
+
+rule dereplicate_all:
+    input:
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in PLATES for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in PLATES for sample in SAMPLES[plate]]
+
+# demultiplex rules
+
+rule demultiplex_Brendan:
+    input:
+        expand("demultiplexed/{plate}", plate = ['plate4','plate5','plate6', 'plate7','plate8'])
+
+rule demultiplex_PJ:
+    input:
+        expand("demultiplexed/{plate}", plate = ['plate1','plate2','plate3'])
+
+rule demultiplex_all:
+    input:
+        expand("demultiplexed/{plate}", plate = PLATES)
 
 ################
 # step 2 in the stacks pipeline
@@ -96,7 +101,7 @@ rule demultiplex_plate:
         sequences="data/links/{plate}",
         barcodes="barcodes/sample_tags_{plate}.tsv"
     output:
-        touch("demultiplexed/plate{plate_no}/demultiplex.done")
+        touch("demultiplexed/{plate}/demultiplex.done")
     shell:
         """
         process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header
