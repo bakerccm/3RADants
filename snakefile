@@ -129,7 +129,7 @@ rule map_to_genome_CN:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
         """
-        module load intel/2017b impi/2017.3.196 Bowtie2/2.3.4.1
+        module load bowtie2/2.2.6-fasrc01
         conda activate samtools1.10
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
         -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} | \
@@ -141,7 +141,8 @@ rule map_to_genome_CN:
 
 rule prepare_genomes:
     input:
-        "genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
+        "genomes/CN.done", "genomes/TP.done"
+        #"genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
 
 # names of original genome files from Richard
 genome_names={'CM': 'Cmimosae_FINAL_VER2.1', 'CN': 'Cnig.1', 'TP': 'Tpen_r3.1'}
@@ -152,10 +153,10 @@ rule prepare_genome:
     output:
         touch("genomes/{genome}.done")
     threads:
-        4
+        5
     shell:
         """
-        module load intel/2017b impi/2017.3.196 Bowtie2/2.3.4.1
+        module load bowtie2/2.2.6-fasrc01
         bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}
         """
 
