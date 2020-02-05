@@ -58,6 +58,36 @@ rule demultiplex_all:
         expand("demultiplexed/{plate}", plate = PLATES)
 
 ################
+# step 3 in the stacks pipeline
+# map reads to genome
+# note that samples need to be separated by ant species
+
+#rule map_reads:
+#    input:
+#        # note that we're just ignoring the remainder files for now ... is this what we want?
+#        file1="dereplicated/{plate}/{sample}.1.1.fq.gz",
+#        file2="dereplicated/{plate}/{sample}.2.2.fq.gz"
+#    output:
+#        # unclear why it adds the extra numbers, but it does
+#    shell:
+#        "clone_filter -1 {input.file1} -2 {input.file2} -o dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8"
+
+rule organize_reads_by_antsp:
+    input:
+        # gets plate label based on sample number
+        file1 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".1.1.fq.gz",
+        file2 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".2.2.fq.gz"
+    output:
+        # unclear why it adds the extra numbers, but it does
+        file1="mapped/{antsp}/{sample}.1.1.fq.gz",
+        file2="mapped/{antsp}/{sample}.2.2.fq.gz"
+    shell:
+        """
+        ln -s {input.file1} {output.file1}
+        ln -s {input.file2} {output.file2}
+        """
+
+################
 # step 2 in the stacks pipeline
 # remove clones using UMIs, which are in the fastq headers
 
