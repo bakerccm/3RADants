@@ -63,8 +63,8 @@ rule demultiplex_all:
 # unclear that grouping by ant sp is the best way to do this ... consider grouping later e.g. when we create stacks
 rule link_Brendan:
     input:
-        ["mapped/" + sample[0:2] + "/" + sample + ".1.1.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]],
-        ["mapped/" + sample[0:2] + "/" + sample + ".2.2.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]]
+        ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".1.1.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]],
+        ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".2.2.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]]
 
 ################
 # step 3 in the stacks pipeline
@@ -88,13 +88,75 @@ rule organize_reads_by_antsp:
         file2 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".2.2.fq.gz"
     output:
         # unclear why it adds the extra numbers, but it does
-        file1="mapped/{antsp}/{sample}.1.1.fq.gz",
-        file2="mapped/{antsp}/{sample}.2.2.fq.gz"
+        file1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
+        file2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     shell:
         # note that file paths for the link are relative to link location, not working directory
         """
         ln -s ../../{input.file1} {output.file1}
         ln -s ../../{input.file2} {output.file2}
+        """
+
+# conda environment samtools should already be created:
+#     conda create --name samtools1.10
+#     conda activate samtools1.10
+#     # set conda channels
+#     conda config --add channels defaults
+#     conda config --add channels bioconda
+#     conda config --add channels conda-forge
+
+# aligns fastq files to a genome using bowtie, then quality-filters the matches, sorts them, and outputs them as a .bam file
+
+# genomes are at genomes/Cnig.1.fasta.gz and genomes/Tpen_r3.1.fasta.gz
+
+rule map_to_genome_test:
+    input:
+        "mapped/CN/CN.NMW.D7.post.1.bam"
+
+rule map_to_genome_CN:
+    input:
+        genome="genomes/{antsp}.done",
+        fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
+        fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
+    output:
+        "mapped/{antsp}/{sample}.bam"
+    params:
+        # I think we should expect fragments from about 330bp to 540 bp
+        min_length=300,
+        max_length=600
+    threads: 4
+    shell:
+        # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
+        # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
+        """
+        module load intel/2017b impi/2017.3.196 Bowtie2/2.3.4.1
+        conda activate samtools1.10
+        bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
+        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} | \
+        samtools view -hq 5 - | samtools sort - -o {output}
+        """
+
+################
+# index ant genomes in preparation for read mapping
+
+rule prepare_genomes:
+    input:
+        "genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
+
+# names of original genome files from Richard
+genome_names={'CM': 'Cmimosae_FINAL_VER2.1', 'CN': 'Cnig.1', 'TP': 'Tpen_r3.1'}
+
+rule prepare_genome:
+    input:
+        lambda wildcards: "genomes/" + genome_names[wildcards.genome] + ".fasta.gz"
+    output:
+        touch("genomes/{genome}.done")
+    threads:
+        4
+    shell:
+        """
+        module load intel/2017b impi/2017.3.196 Bowtie2/2.3.4.1
+        bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}
         """
 
 ################
