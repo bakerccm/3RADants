@@ -90,9 +90,10 @@ rule organize_reads_by_antsp:
         file1="mapped/{antsp}/{sample}.1.1.fq.gz",
         file2="mapped/{antsp}/{sample}.2.2.fq.gz"
     shell:
+        # note that file paths for the link are relative to link location, not working directory
         """
-        ln -s {input.file1} {output.file1}
-        ln -s {input.file2} {output.file2}
+        ln -s ../../../{input.file1} {output.file1}
+        ln -s ../../../{input.file2} {output.file2}
         """
 
 ################
