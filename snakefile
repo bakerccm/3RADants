@@ -79,8 +79,10 @@ rule organize_reads_by_antsp:
         file2 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".2.2.fq.gz"
     output:
         # unclear why it adds the extra numbers, but it does
-        file1="mapped/{antsp}/{sample}.1.1.fq.gz",
-        file2="mapped/{antsp}/{sample}.2.2.fq.gz"
+        #file1="mapped/{antsp}/{sample}.1.1.fq.gz",
+        #file2="mapped/{antsp}/{sample}.2.2.fq.gz"
+        file1="mapped/{sample}.1.1.fq.gz",
+        file2="mapped/{sample}.2.2.fq.gz"
     shell:
         """
         ln -s {input.file1} {output.file1}
