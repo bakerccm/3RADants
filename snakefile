@@ -92,8 +92,8 @@ rule organize_reads_by_antsp:
     shell:
         # note that file paths for the link are relative to link location, not working directory
         """
-        ln -s ../../../{input.file1} {output.file1}
-        ln -s ../../../{input.file2} {output.file2}
+        ln -s ../../{input.file1} {output.file1}
+        ln -s ../../{input.file2} {output.file2}
         """
 
 ################
