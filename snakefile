@@ -125,6 +125,8 @@ rule map_to_genome_CN:
         min_length=300,
         max_length=600
     threads: 4
+    benchmark:
+        "mapped/{antsp}/{sample}.benchmark.txt"
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
@@ -154,6 +156,8 @@ rule prepare_genome:
         touch("genomes/{genome}.done")
     threads:
         5
+    benchmark:
+        "genomes/{genome}.benchmark.txt"
     shell:
         """
         module load bowtie2/2.2.6-fasrc01
