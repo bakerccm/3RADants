@@ -11,7 +11,8 @@
 
 # forces the stacks module to be loaded prior to running any shell commands
 # see https://snakemake.readthedocs.io/en/stable/project_info/faq.html?highlight=shell.prefix#i-want-to-configure-the-behavior-of-my-shell-for-all-rules-how-can-that-be-achieved-with-snakemake
-shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
+#    shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
+# actually don't do that because it slows down steps that don't need it, e.g. creating symlinks
 
 # get sample names from barcode files
 import pandas as pd
@@ -111,7 +112,10 @@ rule dereplicate_sample:
         file1="dereplicated/{plate}/{sample}.1.1.fq.gz",
         file2="dereplicated/{plate}/{sample}.2.2.fq.gz"
     shell:
-        "clone_filter -1 {input.file1} -2 {input.file2} -o dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8"
+        """
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        clone_filter -1 {input.file1} -2 {input.file2} -o dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8
+        """
 
 ################
 # step 1 in the stacks pipeline
@@ -129,7 +133,10 @@ rule demultiplex_plate:
     output:
         touch("demultiplexed/{plate}/demultiplex.done")
     shell:
-        "process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header"
+        """
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header
+        """
 ################
 # step 0
 # create links from input files
