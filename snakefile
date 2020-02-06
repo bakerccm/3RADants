@@ -142,7 +142,7 @@ rule map_to_genome_CN:
 ################
 # index ant genomes in preparation for read mapping
 
-rule prepare_genomes:
+rule index_ant_genomes:
     input:
         "genomes/CN.done", "genomes/TP.done"
         #"genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
@@ -150,7 +150,18 @@ rule prepare_genomes:
 # names of original genome files from Richard
 genome_names={'CM': 'Cmimosae_FINAL_VER2.1', 'CN': 'Cnig.1', 'TP': 'Tpen_r3.1'}
 
-rule prepare_genome:
+# temporarily decompress ant genome fasta.gz file since bowtie2-build requires fasta (not fasta.gz) format
+rule decompress_ant_genome:
+    input:
+        "genomes/{orig_genome}.fasta.gz"
+    output:
+        temp("genomes/{orig_genome}.fasta")
+    shell:
+        "zcat {input} > {output}"
+
+# this runs in ~10 min for CN, 17 min for TP with one thread
+# 2GB memory should be sufficient
+rule index_ant_genome:
     input:
         lambda wildcards: "genomes/" + genome_names[wildcards.genome] + ".fasta"
     output:
