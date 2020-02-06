@@ -156,7 +156,7 @@ rule prepare_genome:
     output:
         touch("genomes/{genome}.done")
     threads:
-        5
+        1
     benchmark:
         "genomes/{genome}.benchmark.txt"
     shell:
