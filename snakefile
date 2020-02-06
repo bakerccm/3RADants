@@ -191,18 +191,13 @@ rule organize_reads_by_antsp:
 
 # genomes should already be indexed at genomes/CM.*, genomes/CN.* and genomes/TP.*
 
+
+# need to get these samples names automatically
+CN_samples = ["CN.NMW.D131.post.1.bam", "CN.NMW.D131.post.2.bam", "CN.NMW.D131.post.3.bam", "CN.NMW.D131.post.4.bam", "CN.NMW.D131.pre.1.bam", "CN.NMW.D131.pre.2.bam", "CN.NMW.D131.pre.3.bam", "CN.NMW.D131.pre.4.bam", "CN.NMW.D159.post.1.bam", "CN.NMW.D159.post.2.bam", "CN.NMW.D159.post.3.bam", "CN.NMW.D159.post.4.bam", "CN.NMW.D159.pre.1.bam", "CN.NMW.D159.pre.2.bam", "CN.NMW.D159.pre.3.bam", "CN.NMW.D159.pre.4.bam", "CN.NMW.D17.post.1.bam", "CN.NMW.D17.post.2.bam", "CN.NMW.D17.post.3.bam", "CN.NMW.D17.post.4.bam", "CN.NMW.D17.pre.1.bam", "CN.NMW.D17.pre.2.bam", "CN.NMW.D17.pre.3.bam", "CN.NMW.D17.pre.4.bam", "CN.NMW.D23.post.1.bam", "CN.NMW.D23.post.2.bam", "CN.NMW.D23.post.3.bam", "CN.NMW.D23.post.4.bam", "CN.NMW.D23.pre.1.bam", "CN.NMW.D23.pre.2.bam", "CN.NMW.D23.pre.3.bam", "CN.NMW.D23.pre.4.bam", "CN.NMW.D7.post.1.bam", "CN.NMW.D7.post.2.bam", "CN.NMW.D7.post.3.bam", "CN.NMW.D7.post.4.bam", "CN.NMW.D7.pre.1.bam", "CN.NMW.D7.pre.2.bam", "CN.NMW.D7.pre.3.bam", "CN.NMW.D7.pre.4.bam", "CN.SMW.840.post.1.bam", "CN.SMW.840.post.2.bam", "CN.SMW.840.post.3.bam", "CN.SMW.840.post.4.bam", "CN.SMW.840.pre.1.bam", "CN.SMW.840.pre.2.bam", "CN.SMW.840.pre.3.bam", "CN.SMW.840.pre.4.bam", "CN.SMW.842.post.1.bam", "CN.SMW.842.post.2.bam", "CN.SMW.842.post.3.bam", "CN.SMW.842.post.4.bam", "CN.SMW.842.pre.1.bam", "CN.SMW.842.pre.2.bam", "CN.SMW.842.pre.3.bam", "CN.SMW.842.pre.4.bam", "CN.SMW.860.post.1.bam", "CN.SMW.860.post.2.bam", "CN.SMW.860.post.3.bam", "CN.SMW.860.post.4.bam", "CN.SMW.860.pre.1.bam", "CN.SMW.860.pre.2.bam", "CN.SMW.860.pre.3.bam", "CN.SMW.860.pre.4.bam", "CN.SMW.885.post.1.bam", "CN.SMW.885.post.2.bam", "CN.SMW.885.post.3.bam", "CN.SMW.885.post.4.bam", "CN.SMW.885.pre.1.bam", "CN.SMW.885.pre.2.bam", "CN.SMW.885.pre.3.bam", "CN.SMW.885.pre.4.bam", "CN.SMW.921.post.1.bam", "CN.SMW.921.post.2.bam", "CN.SMW.921.post.3.bam", "CN.SMW.921.post.4.bam", "CN.SMW.921.pre.1.bam", "CN.SMW.921.pre.2.bam", "CN.SMW.921.pre.3.bam", "CN.SMW.921.pre.4.bam"]
+
 rule map_sort_partial:
     input:
-        "mapped/CN/CN.NMW.D7.post.1.bam",
-        "mapped/CN/CN.NMW.D17.post.4.bam",
-        "mapped/CN/CN.NMW.D131.post.3.bam",
-        "mapped/CN/CN.NMW.D131.pre.1.bam",
-        "mapped/CN/CN.SMW.885.pre.4.bam",
-        "mapped/CN/CN.NMW.D131.pre.1.bam",
-        "mapped/CN/CN.NMW.D17.post.3.bam",
-        "mapped/CN/CN.NMW.D23.pre.4.bam",
-        "mapped/CN/CN.SMW.840.pre.2.bam",
-        "mapped/CN/CN.SMW.860.post.3.bam"
+        expand("mapped/CN/{file}", file = CN_samples)
 
 # maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
