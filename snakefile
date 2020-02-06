@@ -151,12 +151,10 @@ rule index_ant_genome:
         1
     benchmark:
         "genomes/{genome}.benchmark.txt"
+    envmodules:
+        "bowtie2/2.3.2-fasrc02"
     shell:
-        # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
-        """
-        module load bowtie2/2.3.2-fasrc02
-        bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}
-        """
+        "bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}"
 
 ################
 # step 4
@@ -210,13 +208,14 @@ rule map_to_genome_CN:
     threads: 4
     benchmark:
         "mapped/{antsp}/{sample}.benchmark.txt"
+    envmodules:
+        "bowtie2/2.3.2-fasrc02",
+        "bio/samtools/1.9"
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
         # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
         """
-        module load bowtie2/2.3.2-fasrc02
-        source activate samtools1.10
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
         -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} | \
         samtools view -hq 5 - | samtools sort - -o {output}
