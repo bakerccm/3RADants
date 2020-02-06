@@ -197,6 +197,10 @@ rule map_to_genome_test:
         "mapped/CN/CN.NMW.D17.post.4.sam",
         "mapped/CN/CN.NMW.D131.post.3.sam"
 
+rule sort_mapped_reads_test:
+    input:
+        "mapped/CN/CN.NMW.D7.post.1.bam"
+
 # maps reads to indexed ant genome
 # ~2 min per sample, 2GB memory is plenty (probably uses more like 600MB)
 rule map_to_genome:
@@ -225,6 +229,7 @@ rule map_to_genome:
         """
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
+# note: need to run snakemake --use-conda
 rule sort_mapped_reads:
     input:
         "mapped/{antsp}/{sample}.sam"
@@ -232,10 +237,9 @@ rule sort_mapped_reads:
         "mapped/{antsp}/{sample}.bam"
     benchmark:
         "mapped/{antsp}/{sample}.sort.benchmark.txt"
-    envmodules:
-        "bio/samtools/1.9"
+    conda:
+        "envs/samtools.yaml"
     shell:
-        # not sure how to load samtools environment properly
         "samtools view -hq 5 {input} | samtools sort - -o {output}"
 
 ################
