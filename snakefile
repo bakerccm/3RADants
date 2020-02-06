@@ -195,11 +195,15 @@ rule map_to_genome_test:
     input:
         "mapped/CN/CN.NMW.D7.post.1.sam",
         "mapped/CN/CN.NMW.D17.post.4.sam",
-        "mapped/CN/CN.NMW.D131.post.3.sam"
+        "mapped/CN/CN.NMW.D131.post.3.sam",
+        "mapped/CN/CN.NMW.D131.pre.1.sam"
 
 rule sort_mapped_reads_test:
     input:
-        "mapped/CN/CN.NMW.D7.post.1.bam"
+        "mapped/CN/CN.NMW.D7.post.1.bam",
+        "mapped/CN/CN.NMW.D17.post.4.bam",
+        "mapped/CN/CN.NMW.D131.post.3.bam",
+        "mapped/CN/CN.NMW.D131.pre.1.bam"
 
 # maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
