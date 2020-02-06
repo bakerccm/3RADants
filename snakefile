@@ -202,7 +202,8 @@ rule sort_mapped_reads_test:
         "mapped/CN/CN.NMW.D7.post.1.bam"
 
 # maps reads to indexed ant genome
-# ~2 min per sample, 2GB memory is plenty (probably uses more like 600MB)
+# ~2 min per sample with four cores, ~10 min per sample with 1 core
+# 2GB memory is plenty (probably uses more like 600MB)
 rule map_to_genome:
     input:
         genome="genomes/{antsp}.done",
