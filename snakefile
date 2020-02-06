@@ -191,13 +191,6 @@ rule organize_reads_by_antsp:
 
 # genomes should already be indexed at genomes/CM.*, genomes/CN.* and genomes/TP.*
 
-rule map_to_genome_test:
-    input:
-        "mapped/CN/CN.NMW.D7.post.1.sam",
-        "mapped/CN/CN.NMW.D17.post.4.sam",
-        "mapped/CN/CN.NMW.D131.post.3.sam",
-        "mapped/CN/CN.NMW.D131.pre.1.sam"
-
 rule map_sort_partial:
     input:
         "mapped/CN/CN.NMW.D7.post.1.bam",
