@@ -152,7 +152,7 @@ genome_names={'CM': 'Cmimosae_FINAL_VER2.1', 'CN': 'Cnig.1', 'TP': 'Tpen_r3.1'}
 
 rule prepare_genome:
     input:
-        lambda wildcards: "genomes/" + genome_names[wildcards.genome] + ".fasta.gz"
+        lambda wildcards: "genomes/" + genome_names[wildcards.genome] + ".fasta"
     output:
         touch("genomes/{genome}.done")
     threads:
