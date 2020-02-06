@@ -198,12 +198,18 @@ rule map_to_genome_test:
         "mapped/CN/CN.NMW.D131.post.3.sam",
         "mapped/CN/CN.NMW.D131.pre.1.sam"
 
-rule sort_mapped_reads_test:
+rule map_sort_partial:
     input:
         "mapped/CN/CN.NMW.D7.post.1.bam",
         "mapped/CN/CN.NMW.D17.post.4.bam",
         "mapped/CN/CN.NMW.D131.post.3.bam",
-        "mapped/CN/CN.NMW.D131.pre.1.bam"
+        "mapped/CN/CN.NMW.D131.pre.1.bam",
+        "mapped/CN/CN.SMW.885.pre.4.bam",
+        "mapped/CN/CN.NMW.D131.pre.1.bam",
+        "mapped/CN/CN.NMW.D17.post.3.bam",
+        "mapped/CN/CN.NMW.D23.pre.4.bam",
+        "mapped/CN/CN.SMW.840.pre.2.bam",
+        "mapped/CN/CN.SMW.860.post.3.bam"
 
 # maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
@@ -214,8 +220,7 @@ rule map_to_genome:
         fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
         fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     output:
-        #temp("mapped/{antsp}/{sample}.sam") # make this temporary once we have sort_mapped_reads up and running
-        "mapped/{antsp}/{sample}.sam"
+        temp("mapped/{antsp}/{sample}.sam") # make this temporary since the bam file after sorting is much smaller
     params:
         # I think we should expect fragments from about 330bp to 540 bp
         min_length=300,
