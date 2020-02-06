@@ -67,80 +67,61 @@ rule link_Brendan:
         ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".2.2.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]]
 
 ################
-# step 3 in the stacks pipeline
-# map reads to genome
-# note that samples need to be separated by ant species
+# step 0
+# create links from input files
+# to conform to naming convention expected by process_radtags
 
-#rule map_reads:
+#rule make_fastq_links:
 #    input:
-#        # note that we're just ignoring the remainder files for now ... is this what we want?
-#        file1="dereplicated/{plate}/{sample}.1.1.fq.gz",
-#        file2="dereplicated/{plate}/{sample}.2.2.fq.gz"
+#        "data/Rawdata/ ?? fastq files"
 #    output:
-#        # unclear why it adds the extra numbers, but it does
+#        "data/links/{plate}",
 #    shell:
-#        "clone_filter -1 {input.file1} -2 {input.file2} -o dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8"
 
-rule organize_reads_by_antsp:
+################
+# step 1
+# demultiplex each plate
+
+# assumes raw data files have already been renamed using data/create_links.sh
+# to conform to naming convention expected by process_radtags
+
+# use --retain_header to retain i5 index for use as UMI in clone_filter
+
+rule demultiplex_plate:
     input:
-        # gets plate label based on sample number
-        file1 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".1.1.fq.gz",
-        file2 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".2.2.fq.gz"
+        sequences="data/links/{plate}",
+        barcodes="barcodes/sample_tags_{plate}.tsv"
     output:
-        # unclear why it adds the extra numbers, but it does
-        file1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
-        file2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
+        touch("demultiplexed/{plate}/demultiplex.done")
     shell:
-        # note that file paths for the link are relative to link location, not working directory
         """
-        ln -s ../../{input.file1} {output.file1}
-        ln -s ../../{input.file2} {output.file2}
-        """
-
-# conda environment samtools should already be created:
-#     conda create --name samtools1.10
-#     conda activate samtools1.10
-#     # set conda channels
-#     conda config --add channels defaults
-#     conda config --add channels bioconda
-#     conda config --add channels conda-forge
-
-# aligns fastq files to a genome using bowtie, then quality-filters the matches, sorts them, and outputs them as a .bam file
-
-# genomes are at genomes/Cnig.1.fasta.gz and genomes/Tpen_r3.1.fasta.gz
-
-rule map_to_genome_test:
-    input:
-        "mapped/CN/CN.NMW.D7.post.1.bam"
-
-rule map_to_genome_CN:
-    input:
-        genome="genomes/{antsp}.done",
-        fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
-        fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
-    output:
-        "mapped/{antsp}/{sample}.bam"
-    params:
-        # I think we should expect fragments from about 330bp to 540 bp
-        min_length=300,
-        max_length=600
-    threads: 4
-    benchmark:
-        "mapped/{antsp}/{sample}.benchmark.txt"
-    shell:
-        # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
-        # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
-        # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
-        """
-        module load bowtie2/2.3.2-fasrc02
-        conda activate samtools1.10
-        bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
-        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} | \
-        samtools view -hq 5 - | samtools sort - -o {output}
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header
         """
 
 ################
-# index ant genomes in preparation for read mapping
+# step 2
+# remove clones using UMIs, which are in the fastq headers
+
+rule dereplicate_sample:
+    input:
+        # note that we're just ignoring the remainder files for now ... is this what we want?
+        flag="demultiplexed/{plate}/demultiplex.done",
+        file1="demultiplexed/{plate}/{sample}.1.fq.gz",
+        file2="demultiplexed/{plate}/{sample}.2.fq.gz"
+    output:
+        # unclear why it adds the extra numbers, but it does
+        file1="dereplicated/{plate}/{sample}.1.1.fq.gz",
+        file2="dereplicated/{plate}/{sample}.2.2.fq.gz"
+    shell:
+        """
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        clone_filter -1 {input.file1} -2 {input.file2} -o dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8
+        """
+
+################
+# step 3
+# prepare ant genomes from Richard in preparation for read mapping
 
 rule index_ant_genomes:
     input:
@@ -178,56 +159,66 @@ rule index_ant_genome:
         """
 
 ################
-# step 2 in the stacks pipeline
-# remove clones using UMIs, which are in the fastq headers
+# step 4
+# map reads to indexed ant genomes using bowtie, then quality-filter the matches,
+# sort them, and output them as a .bam file
 
-rule dereplicate_sample:
+# note that samples need to be mapped to the right ant genome for the species
+# organize reads by ant species for this purpose (is this a good idea??)
+rule organize_reads_by_antsp:
     input:
-        # note that we're just ignoring the remainder files for now ... is this what we want?
-        flag="demultiplexed/{plate}/demultiplex.done",
-        file1="demultiplexed/{plate}/{sample}.1.fq.gz",
-        file2="demultiplexed/{plate}/{sample}.2.fq.gz"
+        # gets plate label based on sample number
+        file1 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".1.1.fq.gz",
+        file2 = lambda wildcards: "dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".2.2.fq.gz"
     output:
         # unclear why it adds the extra numbers, but it does
-        file1="dereplicated/{plate}/{sample}.1.1.fq.gz",
-        file2="dereplicated/{plate}/{sample}.2.2.fq.gz"
+        file1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
+        file2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     shell:
+        # note that file paths for the link are relative to link location, not working directory
         """
-        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        clone_filter -1 {input.file1} -2 {input.file2} -o dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8
+        ln -s ../../{input.file1} {output.file1}
+        ln -s ../../{input.file2} {output.file2}
         """
 
-################
-# step 1 in the stacks pipeline
-# demultiplex each pool
+# conda environment samtools should already be created:
+#     conda create --name samtools1.10
+#     conda activate samtools1.10
+#     # set conda channels
+#     conda config --add channels defaults
+#     conda config --add channels bioconda
+#     conda config --add channels conda-forge
 
-# assumes raw data files have already been renamed using data/create_links.sh
-# to conform to naming convention expected by process_radtags
+# genomes should already be indexed at genomes/CM.*, genomes/CN.* and genomes/TP.*
 
-# use --retain_header to retain i5 index for use as UMI in clone_filter
-
-rule demultiplex_plate:
+rule map_to_genome_test:
     input:
-        sequences="data/links/{plate}",
-        barcodes="barcodes/sample_tags_{plate}.tsv"
+        "mapped/CN/CN.NMW.D7.post.1.bam"
+
+rule map_to_genome_CN:
+    input:
+        genome="genomes/{antsp}.done",
+        fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
+        fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     output:
-        touch("demultiplexed/{plate}/demultiplex.done")
+        "mapped/{antsp}/{sample}.bam"
+    params:
+        # I think we should expect fragments from about 330bp to 540 bp
+        min_length=300,
+        max_length=600
+    threads: 4
+    benchmark:
+        "mapped/{antsp}/{sample}.benchmark.txt"
     shell:
+        # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
+        # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
+        # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
         """
-        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header
+        module load bowtie2/2.3.2-fasrc02
+        conda activate samtools1.10
+        bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
+        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} | \
+        samtools view -hq 5 - | samtools sort - -o {output}
         """
-################
-# step 0
-# create links from input files
-# to conform to naming convention expected by process_radtags
-
-#rule make_fastq_links:
-#    input:
-#        "data/Rawdata/ ?? fastq files"
-#    output:
-#        "data/links/{plate}",
-#    shell:
-
 
 ################
