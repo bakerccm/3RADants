@@ -202,12 +202,13 @@ rule map_to_genome:
         fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
         fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     output:
-        temp("mapped/{antsp}/{sample}.sam")
+        #temp("mapped/{antsp}/{sample}.sam") # make this temporary once we have sort_mapped_reads up and running
+        "mapped/{antsp}/{sample}.sam"
     params:
         # I think we should expect fragments from about 330bp to 540 bp
         min_length=300,
         max_length=600
-    threads: 4
+    threads: 1
     benchmark:
         "mapped/{antsp}/{sample}.map.benchmark.txt"
     shell:
