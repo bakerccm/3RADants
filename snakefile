@@ -220,7 +220,7 @@ rule map_to_genome:
         # I think we should expect fragments from about 330bp to 540 bp
         min_length=300,
         max_length=600
-    threads: 1
+    threads: 4
     benchmark:
         "mapped/{antsp}/{sample}.map.benchmark.txt"
     shell:
