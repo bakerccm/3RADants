@@ -151,10 +151,11 @@ rule index_ant_genome:
         1
     benchmark:
         "genomes/{genome}.benchmark.txt"
-    envmodules:
-        "bowtie2/2.3.2-fasrc02"
     shell:
-        "bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}"
+        """
+        module load bowtie2/2.3.2-fasrc02
+        bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}
+        """
 
 ################
 # step 4
@@ -192,33 +193,45 @@ rule organize_reads_by_antsp:
 
 rule map_to_genome_test:
     input:
-        "mapped/CN/CN.NMW.D7.post.1.bam"
+        "mapped/CN/CN.NMW.D7.post.1.sam"
 
-rule map_to_genome_CN:
+# maps reads to indexed ant genome
+rule map_to_genome:
     input:
         genome="genomes/{antsp}.done",
         fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
         fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     output:
-        "mapped/{antsp}/{sample}.bam"
+        temp("mapped/{antsp}/{sample}.sam")
     params:
         # I think we should expect fragments from about 330bp to 540 bp
         min_length=300,
         max_length=600
     threads: 4
     benchmark:
-        "mapped/{antsp}/{sample}.benchmark.txt"
-    envmodules:
-        "bowtie2/2.3.2-fasrc02",
-        "bio/samtools/1.9"
+        "mapped/{antsp}/{sample}.map.benchmark.txt"
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
         # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
         """
+        module load bowtie2/2.3.2-fasrc02
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
-        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} | \
-        samtools view -hq 5 - | samtools sort - -o {output}
+        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} -S {output}
         """
+
+# sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
+rule sort_mapped_reads:
+    input:
+        "mapped/{antsp}/{sample}.sam"
+    output:
+        "mapped/{antsp}/{sample}.bam"
+    benchmark:
+        "mapped/{antsp}/{sample}.sort.benchmark.txt"
+    envmodules:
+        "bio/samtools/1.9"
+    shell:
+        # not sure how to load samtools environment properly
+        "samtools view -hq 5 {input} | samtools sort - -o {output}"
 
 ################
