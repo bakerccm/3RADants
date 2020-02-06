@@ -188,6 +188,7 @@ rule organize_reads_by_antsp:
 #     conda config --add channels defaults
 #     conda config --add channels bioconda
 #     conda config --add channels conda-forge
+#     conda install samtools==1.10
 
 # genomes should already be indexed at genomes/CM.*, genomes/CN.* and genomes/TP.*
 
