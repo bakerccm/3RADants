@@ -194,7 +194,8 @@ rule organize_reads_by_antsp:
 rule map_to_genome_test:
     input:
         "mapped/CN/CN.NMW.D7.post.1.sam",
-        "mapped/CN.NMW.D17.post.4.sam"
+        "mapped/CN/CN.NMW.D17.post.4.sam",
+        "mapped/CN/CN.NMW.D131.post.3.sam"
 
 # maps reads to indexed ant genome
 # ~2 min per sample, 2GB memory is plenty (probably uses more like 600MB)
