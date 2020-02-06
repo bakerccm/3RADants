@@ -197,6 +197,7 @@ rule map_to_genome_test:
         "mapped/CN.NMW.D17.post.4.sam"
 
 # maps reads to indexed ant genome
+# ~2 min per sample, 2GB memory is plenty (probably uses more like 600MB)
 rule map_to_genome:
     input:
         genome="genomes/{antsp}.done",
