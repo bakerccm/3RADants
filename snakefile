@@ -87,6 +87,10 @@ rule link_Brendan:
 
 # use --retain_header to retain i5 index for use as UMI in clone_filter
 
+# this remove adaptors and trims everything to the same length
+# R1 reads with shorter barcodes get a few extra bp trimmed at the 3' expand
+# so that all the R1 reads end up being 140bp (since the longest barcode is 9+1 bp).
+
 rule demultiplex_plate:
     input:
         sequences="data/links/{plate}",
