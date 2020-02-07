@@ -14,13 +14,22 @@
 #    shell.prefix("module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01;")
 # actually don't do that because it slows down steps that don't need it, e.g. creating symlinks
 
-# get sample names from barcode files
 import pandas as pd
+# plate names
+PLATES_ALL = ['plate' + str(plate_no) for plate_no in range(1,9)]  # plate1 through plate8
+PLATES_PJ = ['plate' + str(plate_no) for plate_no in range(1,4)]  # plate1 through plate3
+PLATES_BRENDAN = ['plate' + str(plate_no) for plate_no in range(4,9)]  # plate4 through plate8
+# get sample names from barcode files
 SAMPLES = {}
-PLATES = ['plate' + str(plate_no) for plate_no in range(1,9)]  # plate1 through plate8
-for plate in PLATES:
+for plate in PLATES_ALL:
     SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + ".tsv", header = None,
         names = ['row_index','col_index','sample'])['sample'].tolist()
+# get sample names for Brendan's ants -- all and by ant species
+# not sure what the best way to organize this is yet ...
+BRENDAN_SAMPLES={}
+BRENDAN_SAMPLES['all'] = [sample for plate, samples in SAMPLES.items() if plate in PLATES_BRENDAN for sample in samples]
+for antsp in ['CM', 'CN', 'CS', 'TP']:
+    BRENDAN_SAMPLES[antsp] =[sample for sample in BRENDAN_SAMPLES['all'] if sample[0:2]==antsp]
 
 ################
 # rules to run parts of the pipeline
@@ -31,40 +40,40 @@ rule dereplicate_Brendan:
     input:
         # file lists can be python lists
         # supply multiple lists separated by , or concatenate with +
-        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]],
-        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]]
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]]
 
 rule dereplicate_PJ:
     input:
-        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in ['plate1','plate2','plate3'] for sample in SAMPLES[plate]],
-        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in ['plate1','plate2','plate3'] for sample in SAMPLES[plate]]
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in PLATES_PJ for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in PLATES_PJ for sample in SAMPLES[plate]]
 
 rule dereplicate_all:
     input:
-        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in PLATES for sample in SAMPLES[plate]],
-        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in PLATES for sample in SAMPLES[plate]]
+        ["dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in PLATES_ALL for sample in SAMPLES[plate]],
+        ["dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in PLATES_ALL for sample in SAMPLES[plate]]
 
 # demultiplex rules
 
 rule demultiplex_Brendan:
     input:
-        expand("demultiplexed/{plate}", plate = ['plate4','plate5','plate6', 'plate7','plate8'])
+        expand("demultiplexed/{plate}", plate = PLATES_BRENDAN)
 
 rule demultiplex_PJ:
     input:
-        expand("demultiplexed/{plate}", plate = ['plate1','plate2','plate3'])
+        expand("demultiplexed/{plate}", plate = PLATES_PJ)
 
 rule demultiplex_all:
     input:
-        expand("demultiplexed/{plate}", plate = PLATES)
+        expand("demultiplexed/{plate}", plate = PLATES_ALL)
 
 # make links to dereplicated data by ant species
 
 # unclear that grouping by ant sp is the best way to do this ... consider grouping later e.g. when we create stacks
 rule link_Brendan:
     input:
-        ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".1.1.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]],
-        ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".2.2.fq.gz" for plate in ['plate4','plate5','plate6', 'plate7','plate8'] for sample in SAMPLES[plate]]
+        ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".1.1.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]],
+        ["dereplicated_byant/" + sample[0:2] + "/" + sample + ".2.2.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]]
 
 ################
 # step 0
@@ -197,18 +206,19 @@ rule organize_reads_by_antsp:
 
 
 # need to get these samples names automatically
-CN_samples = ["CN.NMW.D131.post.1.bam", "CN.NMW.D131.post.2.bam", "CN.NMW.D131.post.3.bam", "CN.NMW.D131.post.4.bam", "CN.NMW.D131.pre.1.bam", "CN.NMW.D131.pre.2.bam", "CN.NMW.D131.pre.3.bam", "CN.NMW.D131.pre.4.bam", "CN.NMW.D159.post.1.bam", "CN.NMW.D159.post.2.bam", "CN.NMW.D159.post.3.bam", "CN.NMW.D159.post.4.bam", "CN.NMW.D159.pre.1.bam", "CN.NMW.D159.pre.2.bam", "CN.NMW.D159.pre.3.bam", "CN.NMW.D159.pre.4.bam", "CN.NMW.D17.post.1.bam", "CN.NMW.D17.post.2.bam", "CN.NMW.D17.post.3.bam", "CN.NMW.D17.post.4.bam", "CN.NMW.D17.pre.1.bam", "CN.NMW.D17.pre.2.bam", "CN.NMW.D17.pre.3.bam", "CN.NMW.D17.pre.4.bam", "CN.NMW.D23.post.1.bam", "CN.NMW.D23.post.2.bam", "CN.NMW.D23.post.3.bam", "CN.NMW.D23.post.4.bam", "CN.NMW.D23.pre.1.bam", "CN.NMW.D23.pre.2.bam", "CN.NMW.D23.pre.3.bam", "CN.NMW.D23.pre.4.bam", "CN.NMW.D7.post.1.bam", "CN.NMW.D7.post.2.bam", "CN.NMW.D7.post.3.bam", "CN.NMW.D7.post.4.bam", "CN.NMW.D7.pre.1.bam", "CN.NMW.D7.pre.2.bam", "CN.NMW.D7.pre.3.bam", "CN.NMW.D7.pre.4.bam", "CN.SMW.840.post.1.bam", "CN.SMW.840.post.2.bam", "CN.SMW.840.post.3.bam", "CN.SMW.840.post.4.bam", "CN.SMW.840.pre.1.bam", "CN.SMW.840.pre.2.bam", "CN.SMW.840.pre.3.bam", "CN.SMW.840.pre.4.bam", "CN.SMW.842.post.1.bam", "CN.SMW.842.post.2.bam", "CN.SMW.842.post.3.bam", "CN.SMW.842.post.4.bam", "CN.SMW.842.pre.1.bam", "CN.SMW.842.pre.2.bam", "CN.SMW.842.pre.3.bam", "CN.SMW.842.pre.4.bam", "CN.SMW.860.post.1.bam", "CN.SMW.860.post.2.bam", "CN.SMW.860.post.3.bam", "CN.SMW.860.post.4.bam", "CN.SMW.860.pre.1.bam", "CN.SMW.860.pre.2.bam", "CN.SMW.860.pre.3.bam", "CN.SMW.860.pre.4.bam", "CN.SMW.885.post.1.bam", "CN.SMW.885.post.2.bam", "CN.SMW.885.post.3.bam", "CN.SMW.885.post.4.bam", "CN.SMW.885.pre.1.bam", "CN.SMW.885.pre.2.bam", "CN.SMW.885.pre.3.bam", "CN.SMW.885.pre.4.bam", "CN.SMW.921.post.1.bam", "CN.SMW.921.post.2.bam", "CN.SMW.921.post.3.bam", "CN.SMW.921.post.4.bam", "CN.SMW.921.pre.1.bam", "CN.SMW.921.pre.2.bam", "CN.SMW.921.pre.3.bam", "CN.SMW.921.pre.4.bam"]
-
-rule map_sort_partial:
+rule map_sort:
     input:
-        expand("mapped/CN/{file}", file = CN_samples)
+        expand("mapped/CM/{sample}.bam", sample = BRENDAN_SAMPLES['CM']),
+        expand("mapped/CN/{sample}.bam", sample = BRENDAN_SAMPLES['CN']),
+        expand("mapped/TP/{sample}.bam", sample = BRENDAN_SAMPLES['TP'])
+#expand("mapped/CS/{sample}.bam", sample = BRENDAN_SAMPLES['CS'])
 
 # maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
 # 2GB memory is plenty (probably uses more like 600MB)
 rule map_to_genome:
     input:
-        genome="genomes/{antsp}.done",
+        genome=lambda wildcards: "genomes/{antsp}.done",
         fastq1="dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
         fastq2="dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
     output:
