@@ -208,9 +208,9 @@ rule organize_reads_by_antsp:
 # need to get these samples names automatically
 rule map_sort:
     input:
-        expand("mapped/CM/{sample}.bam", sample = BRENDAN_SAMPLES['CM']),
         expand("mapped/CN/{sample}.bam", sample = BRENDAN_SAMPLES['CN']),
         expand("mapped/TP/{sample}.bam", sample = BRENDAN_SAMPLES['TP'])
+#expand("mapped/CM/{sample}.bam", sample = BRENDAN_SAMPLES['CM'])
 #expand("mapped/CS/{sample}.bam", sample = BRENDAN_SAMPLES['CS'])
 
 # maps reads to indexed ant genome
