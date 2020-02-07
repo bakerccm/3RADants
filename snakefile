@@ -228,8 +228,8 @@ rule map_to_genome:
         min_length=300,
         max_length=600
     threads: 4
-    benchmark:
-        "mapped/{antsp}/{sample}.map.benchmark.txt"
+    #benchmark:
+    #    "mapped/{antsp}/{sample}.map.benchmark.txt"
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
@@ -247,8 +247,8 @@ rule sort_mapped_reads:
         "mapped/{antsp}/{sample}.sam"
     output:
         "mapped/{antsp}/{sample}.bam"
-    benchmark:
-        "mapped/{antsp}/{sample}.sort.benchmark.txt"
+    #benchmark:
+    #    "mapped/{antsp}/{sample}.sort.benchmark.txt"
     conda:
         "envs/samtools.yaml"
     shell:
