@@ -255,3 +255,22 @@ rule sort_mapped_reads:
         "samtools view -hq 5 {input} | samtools sort - -o {output}"
 
 ################
+
+# examine mappings to genomes
+
+rule examine_mapped_sample:
+    input:
+        "mapped/{antsp}/{sample}.bam"
+    output:
+        "mapped/{antsp}/{sample}.txt"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        """
+        echo ">samtools flagstat {input} >{output}\n\n"
+        samtools flagstat {input} >>{output}
+        echo "samtools idxstats {input} >>{output}\n\n"
+        samtools idxstats {input} >>{output}
+        """
+
+################
