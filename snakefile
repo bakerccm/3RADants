@@ -258,6 +258,11 @@ rule sort_mapped_reads:
 
 # examine mappings to genomes
 
+rule flagstat_CN_TP:
+    input:
+        expand("mapped/CN/{sample}.flagstat", sample = BRENDAN_SAMPLES['CN']),
+        expand("mapped/TP/{sample}.flagstat", sample = BRENDAN_SAMPLES['TP'])
+
 rule flagstat_mapped_sample:
     input:
         "mapped/{antsp}/{sample}.bam"
@@ -266,7 +271,7 @@ rule flagstat_mapped_sample:
     conda:
         "envs/samtools.yaml"
     shell:
-        "samtools flagstat {input} >{output}"
+        "samtools flagstat -O tsv {input} >{output}"
 
 rule idxstat_mapped_sample:
     input:
