@@ -258,19 +258,34 @@ rule sort_mapped_reads:
 
 # examine mappings to genomes
 
-rule examine_mapped_sample:
+rule flagstat_mapped_sample:
     input:
         "mapped/{antsp}/{sample}.bam"
     output:
-        "mapped/{antsp}/{sample}.txt"
+        "mapped/{antsp}/{sample}.flagstat"
     conda:
         "envs/samtools.yaml"
     shell:
-        """
-        echo ">samtools flagstat {input} >{output}\n\n"
-        samtools flagstat {input} >>{output}
-        echo "samtools idxstats {input} >>{output}\n\n"
-        samtools idxstats {input} >>{output}
-        """
+        "samtools flagstat {input} >{output}"
+
+rule idxstat_mapped_sample:
+    input:
+        "mapped/{antsp}/{sample}.bam"
+    output:
+        "mapped/{antsp}/{sample}.idxstat"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools idxstat {input} >{output}"
+
+rule stat_mapped_sample:
+    input:
+        "mapped/{antsp}/{sample}.bam"
+    output:
+        "mapped/{antsp}/{sample}.stat"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools stat {input} >{output}"
 
 ################
