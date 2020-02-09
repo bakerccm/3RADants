@@ -230,6 +230,8 @@ rule map_to_genome:
     threads: 4
     #benchmark:
     #    "mapped/{antsp}/{sample}.map.benchmark.txt"
+    log:
+        "mapped/{antsp}/{sample}.log"
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
@@ -237,7 +239,7 @@ rule map_to_genome:
         """
         module load bowtie2/2.3.2-fasrc02
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
-        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} -S {output}
+        -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} -S {output} 2>{log}
         """
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
