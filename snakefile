@@ -138,8 +138,7 @@ rule dereplicate_sample:
 
 rule index_ant_genomes:
     input:
-        "genomes/CN.done", "genomes/TP.done"
-        #"genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
+        "genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
 
 # names of original genome files from Richard
 genome_names={'CM': 'Cmimosae_FINAL_VER2.1', 'CN': 'Cnig.1', 'TP': 'Tpen_r3.1'}
@@ -208,10 +207,10 @@ rule organize_reads_by_antsp:
 # need to get these samples names automatically
 rule map_sort:
     input:
+        expand("mapped/CM/{sample}.bam", sample = BRENDAN_SAMPLES['CM']),
         expand("mapped/CN/{sample}.bam", sample = BRENDAN_SAMPLES['CN']),
+        #expand("mapped/CS/{sample}.bam", sample = BRENDAN_SAMPLES['CS']),
         expand("mapped/TP/{sample}.bam", sample = BRENDAN_SAMPLES['TP'])
-#expand("mapped/CM/{sample}.bam", sample = BRENDAN_SAMPLES['CM'])
-#expand("mapped/CS/{sample}.bam", sample = BRENDAN_SAMPLES['CS'])
 
 # maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
@@ -260,9 +259,11 @@ rule sort_mapped_reads:
 
 # examine mappings to genomes
 
-rule flagstat_CN_TP:
+rule flagstat_CM_CN_TP:
     input:
+        expand("mapped/CM/{sample}.flagstat", sample = BRENDAN_SAMPLES['CM']),
         expand("mapped/CN/{sample}.flagstat", sample = BRENDAN_SAMPLES['CN']),
+        #expand("mapped/CS/{sample}.flagstat", sample = BRENDAN_SAMPLES['CS']),
         expand("mapped/TP/{sample}.flagstat", sample = BRENDAN_SAMPLES['TP'])
 
 rule flagstat_mapped_sample:
