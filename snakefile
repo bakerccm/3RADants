@@ -21,8 +21,8 @@ PLATES_PJ = ['plate' + str(plate_no) for plate_no in range(1,4)]  # plate1 throu
 PLATES_BRENDAN = ['plate' + str(plate_no) for plate_no in range(4,9)]  # plate4 through plate8
 # get sample names from barcode files
 SAMPLES = {}
-for pl in PLATES_ALL:
-    SAMPLES[pl] = pd.read_table("barcodes/sample_tags_" + pl + "_OLD.tsv", header = None,
+for plate in PLATES_ALL:
+    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + "_OLD.tsv", header = None,
         names = ['row_index','col_index','sample'])['sample'].tolist()
 # get sample names for Brendan's ants -- all and by ant species
 # not sure what the best way to organize this is yet ...
@@ -64,7 +64,7 @@ rule reformat_metadata_plate:
         "sample_tags_plate{plate}.tsv"
     shell:
         '''
-        grep "^{plate}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > {output}
+        grep "^{wildcards.plate}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > {output}
         '''
 
 ################
