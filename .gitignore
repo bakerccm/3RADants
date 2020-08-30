@@ -8,6 +8,8 @@ snakemake.out
 dag_filegraph.svg
 dag_rulegraph.svg
 
+barcodes/*
+
 #data/Rawdata/
 #data/UMI/
 #data/checkSize.xls
@@ -17,3 +19,7 @@ dag_rulegraph.svg
 #dereplicated_byant/
 #genomes/
 #mapped/
+
+# keep .gitkeep files everywhere
+!.gitkeep
+
