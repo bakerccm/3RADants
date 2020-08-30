@@ -61,7 +61,7 @@ rule reformat_metadata_plate:
     input:
         "metadata/sample_tags.csv"
     output:
-        "sample_tags_plate{plate}.tsv"
+        "barcodes/sample_tags_plate{plate}.tsv"
     shell:
         '''
         grep "^{wildcards.plate}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > {output}
