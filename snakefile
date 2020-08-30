@@ -2,7 +2,7 @@
 
 # Chris Baker
 # bakerccm@gmail.com
-# 29 January 2020
+# 30 August 2020
 
 # scripts adapted from those supplied by Jack Boyle
 
@@ -22,7 +22,7 @@ PLATES_BRENDAN = ['plate' + str(plate_no) for plate_no in range(4,9)]  # plate4 
 # get sample names from barcode files
 SAMPLES = {}
 for plate in PLATES_ALL:
-    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + "_OLD.tsv", header = None,
+    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + ".tsv", header = None,
         names = ['row_index','col_index','sample'])['sample'].tolist()
 # get sample names for Brendan's ants -- all and by ant species
 # not sure what the best way to organize this is yet ...
