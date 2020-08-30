@@ -1,2 +1,19 @@
 # Mac OSX files
 **/.DS_Store
+
+.snakemake/
+snakemake.err
+snakemake.out
+
+dag_filegraph.svg
+dag_rulegraph.svg
+
+#data/Rawdata/
+#data/UMI/
+#data/checkSize.xls
+#data/links/
+#demultiplexed/
+#dereplicated/
+#dereplicated_byant/
+#genomes/
+#mapped/
