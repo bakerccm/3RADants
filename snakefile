@@ -52,16 +52,19 @@ rule reformat_metadata_PJ:
 # note addition of G and T at end of tags (between tag and restriction site)
 # note also replacement of '/' with '-' since only letters, numbers, '.', '-' and '_' are allowed by process_radtags
 
-rule reformat_metadata_stacks:
+# gets all plates (1 through 3 are PJ's; 4 through 8 are Brendan's)
+rule all_reformat_metadata_plate:
+    input:
+        expand("sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
+
+rule reformat_metadata_plate:
     input:
         "metadata/sample_tags.csv"
     output:
-        expand("sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
+        "sample_tags_plate{plate}.tsv"
     shell:
         '''
-        for PLATE in {{1..8}}; do
-            grep "^${{PLATE}}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > sample_tags_plate${{PLATE}}.tsv
-        done
+        grep "^{plate}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > {output}
         '''
 
 ################
