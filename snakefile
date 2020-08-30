@@ -21,9 +21,9 @@ PLATES_PJ = ['plate' + str(plate_no) for plate_no in range(1,4)]  # plate1 throu
 PLATES_BRENDAN = ['plate' + str(plate_no) for plate_no in range(4,9)]  # plate4 through plate8
 # get sample names from barcode files
 SAMPLES = {}
-#for plate in PLATES_ALL:
-#    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + ".tsv", header = None,
-#        names = ['row_index','col_index','sample'])['sample'].tolist()
+for plate in PLATES_ALL:
+    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + "_OLD.tsv", header = None,
+        names = ['row_index','col_index','sample'])['sample'].tolist()
 # get sample names for Brendan's ants -- all and by ant species
 # not sure what the best way to organize this is yet ...
 BRENDAN_SAMPLES={}
