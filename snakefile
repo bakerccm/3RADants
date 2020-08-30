@@ -34,6 +34,9 @@ for antsp in ['CM', 'CN', 'CS', 'TP']:
 ################
 # rules to reformat metadata files
 
+# note use of double braces in shell commands -- this is necessary to 'escape' them and
+# prevent bash braces from being interpreted as indicating snakemake wildcards
+
 # file for PJ
 rule reformat_metadata_PJ:
     input:
@@ -53,12 +56,11 @@ rule reformat_metadata_stacks:
     input:
         "metadata/sample_tags.csv"
     output:
-        expand("sample_tags_plate{plate}.tsv", plate = range(1,8))
+        expand("sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
     shell:
         '''
-        for PLATE in {1..8}; do
-            #grep "^${{PLATE}}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > sample_tags_plate${{PLATE}}.tsv
-            echo ${{PLATE}}
+        for PLATE in {{1..8}}; do
+            grep "^${{PLATE}}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > sample_tags_plate${{PLATE}}.tsv
         done
         '''
 
