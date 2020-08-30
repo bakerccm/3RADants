@@ -60,7 +60,7 @@ rule reformat_metadata_stacks:
     shell:
         '''
         for PLATE in {{1..8}}; do
-            grep "^${{PLATE}}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > sample_tags_plate${{PLATE}}.tsv
+            grep "^${{PLATE}}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > sample_tags_plate${{PLATE}}.tsv
         done
         '''
 
