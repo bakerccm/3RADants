@@ -55,7 +55,7 @@ rule reformat_metadata_PJ:
 # gets all plates (1 through 3 are PJ's; 4 through 8 are Brendan's)
 rule all_reformat_metadata_plate:
     input:
-        expand("sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
+        expand("barcodes/sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
 
 rule reformat_metadata_plate:
     input:
