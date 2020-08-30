@@ -2,7 +2,6 @@
 **/.DS_Store
 
 .snakemake/
-snakemake.sh
 snakemake.err
 snakemake.out
 
