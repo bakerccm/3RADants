@@ -32,6 +32,37 @@ for antsp in ['CM', 'CN', 'CS', 'TP']:
     BRENDAN_SAMPLES[antsp] =[sample for sample in BRENDAN_SAMPLES['all'] if sample[0:2]==antsp]
 
 ################
+# rules to reformat metadata files
+
+# file for PJ
+rule reformat_metadata_PJ
+    input:
+        "metadata/sample_tags.csv"
+    output:
+        "barcodes/sample_tags_PJ.tsv"
+    shell:
+        '''
+        grep "^[123]," {input} | awk -v FS=, -v OFS="\t" '{{print $1,$3,$4,$5}}' > {output}
+        '''
+
+# metadata files for use with stacks: one for each plate of samples
+# note addition of G and T at end of tags (between tag and restriction site)
+# note also replacement of '/' with '-' since only letters, numbers, '.', '-' and '_' are allowed by process_radtags
+
+rule reformat_metadata_stacks
+    input:
+        "metadata/sample_tags.csv"
+    output:
+        expand("sample_tags_plate{plate}.tsv", plate = range(1,8))
+    shell:
+        '''
+        for PLATE in {1..8}; do
+            grep "^${{PLATE}}," sample_tags.csv | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > sample_tags_plate${{PLATE}}.tsv
+        done
+        '''
+
+################
+
 # rules to run parts of the pipeline
 
 # dereplicate rules
