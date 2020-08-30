@@ -35,7 +35,7 @@ for antsp in ['CM', 'CN', 'CS', 'TP']:
 # rules to reformat metadata files
 
 # file for PJ
-rule reformat_metadata_PJ
+rule reformat_metadata_PJ:
     input:
         "metadata/sample_tags.csv"
     output:
@@ -49,7 +49,7 @@ rule reformat_metadata_PJ
 # note addition of G and T at end of tags (between tag and restriction site)
 # note also replacement of '/' with '-' since only letters, numbers, '.', '-' and '_' are allowed by process_radtags
 
-rule reformat_metadata_stacks
+rule reformat_metadata_stacks:
     input:
         "metadata/sample_tags.csv"
     output:
