@@ -38,4 +38,4 @@ ants and revisit PJs's data later as necessary.
   
   Note also replacement of '/' with '-' since only letters, numbers, '.', '-' and '_' are allowed by ```process_radtags```.
 
-  Note that shell commands in ```snakefile``` look different e.g. due to use of snakemake wildcards and double braces to escape braces that need to be passed to ```bash```.
+  This conversion is carried out by the rule ```reformat_metadata_stacks```, but note that shell commands in ```snakefile``` look different e.g. due to use of snakemake wildcards and double braces to escape braces that need to be passed to ```bash```.
