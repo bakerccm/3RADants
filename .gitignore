@@ -8,7 +8,7 @@ snakemake.out
 dag_filegraph.svg
 dag_rulegraph.svg
 
-barcodes/*
+/out
 
 #data/Rawdata/
 #data/UMI/

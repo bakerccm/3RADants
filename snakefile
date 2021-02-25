@@ -22,7 +22,7 @@ PLATES_BRENDAN = ['plate' + str(plate_no) for plate_no in range(4,9)]  # plate4 
 # get sample names from barcode files
 SAMPLES = {}
 for plate in PLATES_ALL:
-    SAMPLES[plate] = pd.read_table("barcodes/sample_tags_" + plate + ".tsv", header = None,
+    SAMPLES[plate] = pd.read_table("out/barcodes/sample_tags_" + plate + ".tsv", header = None,
         names = ['row_index','col_index','sample'])['sample'].tolist()
 # get sample names for Brendan's ants -- all and by ant species
 # not sure what the best way to organize this is yet ...
@@ -42,7 +42,7 @@ rule reformat_metadata_PJ:
     input:
         "metadata/sample_tags.csv"
     output:
-        "barcodes/sample_tags_PJ.tsv"
+        "out/barcodes/sample_tags_PJ.tsv"
     shell:
         '''
         grep "^[123]," {input} | awk -v FS=, -v OFS="\t" '{{print $1,$3,$4,$5}}' > {output}
@@ -55,13 +55,13 @@ rule reformat_metadata_PJ:
 # gets all plates (1 through 3 are PJ's; 4 through 8 are Brendan's)
 rule all_reformat_metadata_stacks:
     input:
-        expand("barcodes/sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
+        expand("out/barcodes/sample_tags_plate{plate}.tsv", plate = [1,2,3,4,5,6,7,8])
 
 rule reformat_metadata_stacks:
     input:
         "metadata/sample_tags.csv"
     output:
-        "barcodes/sample_tags_plate{plate}.tsv"
+        "out/barcodes/sample_tags_plate{plate}.tsv"
     shell:
         '''
         grep "^{wildcards.plate}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > {output}
@@ -140,7 +140,7 @@ rule link_Brendan:
 rule demultiplex_plate:
     input:
         sequences="data/links/{plate}",
-        barcodes="barcodes/sample_tags_{plate}.tsv"
+        barcodes="out/barcodes/sample_tags_{plate}.tsv"
     output:
         touch("demultiplexed/{plate}/demultiplex.done")
     shell:
