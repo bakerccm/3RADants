@@ -105,22 +105,22 @@ rule demultiplex_all:
     input:
         expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
 
-rule demultiplex_plate:
-    input:
-        sequences = lambda wildcards: "data/links/plate" + str(SAMPLES.loc[wildcards.sample,'plate']),
-        barcodes = lambda wildcards: "out/barcodes/sample_tags_plate" + str(SAMPLES.loc[wildcards.sample,'plate']) + ".tsv"
-    output:
-        # ignores remainder files
-        "out/demultiplexed/{sample}.1.fq.gz",
-        "out/demultiplexed/{sample}.2.fq.gz"
-    params:
-        renz_1 = config['renz_1'],
-        renz_2 = config['renz_2']
-    shell:
-        """
-        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
-        """
+for p in config['plates']:
+    rule 'demultiplex_plate_' + str(p):
+        input:
+            sequences = "data/links/plate" + str(p),
+            barcodes = "out/barcodes/sample_tags_plate" + str(p) + ".tsv"
+        output:
+            # ignores remainder files
+            expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'] == p].index), read = [1,2])
+        params:
+            renz_1 = config['renz_1'],
+            renz_2 = config['renz_2']
+        shell:
+            """
+            module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+            process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
+            """
 
 ################
 # step 2
