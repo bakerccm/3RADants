@@ -101,7 +101,7 @@ rule reformat_metadata:
 # R1 reads with shorter barcodes get a few extra bp trimmed at the 3' expand
 # so that all the R1 reads end up being 140bp (since the longest barcode is 9+1 bp).
 
-rule demultiplex_brendan:
+rule demultiplex_all:
     input:
         expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
 
@@ -119,7 +119,7 @@ rule demultiplex_plate:
     shell:
         """
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {renz_1} --renz_2 {renz_2} --retain_header
+        process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
         """
 
 ################
