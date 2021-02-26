@@ -106,7 +106,9 @@ rule demultiplex_all:
         expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
 
 for p in config['plates']:
-    rule 'demultiplex_plate_' + str(p):
+    rule:
+        name:
+            'demultiplex_plate' + str(p)
         input:
             sequences = "data/links/plate" + str(p),
             barcodes = "out/barcodes/sample_tags_plate" + str(p) + ".tsv"
