@@ -1,4 +1,13 @@
-plates:
-    PJ: [1,2,3]
-    Brendan: [4,5,6,7,8]
-    all: [1,2,3,4,5,6,7,8]
+## plates to run ##
+
+# PJ's plates are [1,2,3]
+# Brendan's plates are [4,5,6,7,8]
+# N.B. some rules may not work properly for PJ's plates due to
+# different sample naming conventions compared to Brendan's plates
+
+plates: [4,5,6,7,8]
+
+## restriction enzymes for process_radtags ##
+
+renz_1: nheI
+renz_2: ecoRI

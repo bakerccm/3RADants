@@ -10,10 +10,8 @@
 ## get config information
 
 # config file
+# config['plates'] gives the plate numbers to run (i.e. [4,5,6,7,8] to run Brendan's samples)
 configfile: 'config/config.yaml'
-# PJ's plates are now in config['plates']['PJ'] (= [1,2,3])
-# Brendan's plates are now in config['plates']['Brendan'] (= [4,5,6,7,8])
-# all plates are now in config['plates']['all'] (= [1,2,3,4,5,6,7,8])
 
 # sample metadata
 import pandas as pd
@@ -105,18 +103,23 @@ rule reformat_metadata:
 
 rule demultiplex_brendan:
     input:
-        expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates']['Brendan'])].index), read = [1,2])
+        expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
 
 rule demultiplex_plate:
     input:
-        sequences="data/links/{plate}",
-        barcodes="out/barcodes/sample_tags_plate{plate}.tsv"
+        sequences = lambda wildcards: "data/links/plate" + str(SAMPLES.loc[wildcards.sample,'plate']),
+        barcodes = lambda wildcards: "out/barcodes/sample_tags_plate" + str(SAMPLES.loc[wildcards.sample,'plate']) + ".tsv"
     output:
-        expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'] == {plate}].index), read = [1,2])
+        # ignores remainder files
+        "out/demultiplexed/{sample}.1.fq.gz",
+        "out/demultiplexed/{sample}.2.fq.gz"
+    params:
+        renz_1 = config['renz_1'],
+        renz_2 = config['renz_2']
     shell:
         """
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        process_radtags -P -p {input.sequences} -b {input.barcodes} -o {output} -c -q -r --inline_inline --renz_1 nheI --renz_2 ecoRI --retain_header
+        process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {renz_1} --renz_2 {renz_2} --retain_header
         """
 
 ################
