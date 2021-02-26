@@ -37,7 +37,7 @@ SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample'
 
 rule all_reformat_metadata:
     input:
-        expand("out/barcodes/sample_tags_plate{plate}.tsv", plate = config['plates']['all'])
+        expand("out/barcodes/sample_tags_plate{plate}.tsv", plate = config['plates'])
 
 rule reformat_metadata:
     input:
