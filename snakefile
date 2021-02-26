@@ -105,6 +105,11 @@ rule demultiplex_all:
     input:
         expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
 
+# generates a demultiplex rule for each plate
+# - list of output files varies by plate but this can't be left as a wildcard in the output expand() if a single rule is used for all plates
+# - alternatively, if you write a rule that just specifies a single sample's outputs rather than all the output files for a plate, the rule runs once per sample rather than once per plate
+# - see discussion at https://stackoverflow.com/questions/41135801/snakemake-best-practice-for-demultiplexing
+# - note: requires snakemake 5.31.0 or later for name keyword to work
 for p in config['plates']:
     rule:
         name:
