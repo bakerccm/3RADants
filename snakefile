@@ -109,7 +109,7 @@ rule demultiplex_all:
 # - list of output files varies by plate but this can't be left as a wildcard in the output expand() if a single rule is used for all plates
 # - alternatively, if you write a rule that just specifies a single sample's outputs rather than all the output files for a plate, the rule runs once per sample rather than once per plate
 # - see discussion at https://stackoverflow.com/questions/41135801/snakemake-best-practice-for-demultiplexing
-# - note: requires snakemake 5.31.0 or later for name keyword to work
+# - note: requires snakemake 5.31.0 or later for 'name' keyword to work
 for p in config['plates']:
     rule:
         name:
@@ -124,10 +124,10 @@ for p in config['plates']:
             renz_1 = config['renz_1'],
             renz_2 = config['renz_2']
         shell:
-            """
+            '''
             module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
             process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
-            """
+            '''
 
 ################
 # step 2
