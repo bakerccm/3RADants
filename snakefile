@@ -190,7 +190,7 @@ rule map_to_genome:
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
-        # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
+        # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only added to bowtie-build in 2.2.7
         """
         module load bowtie2/2.3.2-fasrc02
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
