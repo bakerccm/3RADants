@@ -197,7 +197,7 @@ rule map_to_genome:
     #benchmark:
     #    "out/mapped/{antsp}/{sample}.map.benchmark.txt"
     log:
-        "out/mapped/{antsp}/{sample}.log"
+        "out/mapped/{sample}.log"
     shell:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
