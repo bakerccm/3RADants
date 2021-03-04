@@ -50,7 +50,11 @@ rule reformat_metadata:
 # create links from input files
 # to conform to naming convention expected by process_radtags
 
-rule make_fastq_links:
+rule all_fastq_links:
+    input:
+        expand("out/data/{link}", link = list(RAWDATA.index))
+
+rule fastq_link:
    input:
        lambda wildcards: 'data/' + RAWDATA.loc[wildcards.link]['original']
    output:
