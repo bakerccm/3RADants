@@ -164,8 +164,6 @@ rule index_genome:
         expand("out/genomes/{{genome}}.{suffix}", suffix = ["1.bt2","2.bt2","3.bt2","4.bt2","rev.1.bt2","rev.2.bt2"])
     threads:
         1
-    benchmark:
-        "out/genomes/{genome}.benchmark.txt"
     shell:
         """
         module load bowtie2/2.3.2-fasrc02
