@@ -205,7 +205,7 @@ rule map_to_genome:
         """
         module load bowtie2/2.3.2-fasrc02
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
-        -x {params/genome} -1 {input.fastq1} -2 {input.fastq2} -S {output} 2>{log}
+        -x {params.genome} -1 {input.fastq1} -2 {input.fastq2} -S {output} 2>{log}
         """
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
