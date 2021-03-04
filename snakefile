@@ -21,13 +21,6 @@ SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample'
 
 #list(SAMPLES[SAMPLES['plate'].isin([1,2,3])].index)
 
-# get sample names for Brendan's ants -- all and by ant species
-# not sure what the best way to organize this is yet ...
-#BRENDAN_SAMPLES={}
-#BRENDAN_SAMPLES['all'] = [sample for plate, samples in SAMPLES.items() if plate in PLATES_BRENDAN for sample in samples]
-#for antsp in ['CM', 'CN', 'CS', 'TP']:
-#    BRENDAN_SAMPLES[antsp] =[sample for sample in BRENDAN_SAMPLES['all'] if sample[0:2]==antsp]
-
 ################
 # reformat sample metadata files for use with stacks: one for each plate of samples
 
@@ -48,18 +41,6 @@ rule reformat_metadata:
         '''
         grep "^{wildcards.plate}," {input} | awk -v FS=, -v OFS="\t" '{{print $3"G",$4"T",$5}}' | tr '/' '-' > {output}
         '''
-
-################
-
-# rules to run parts of the pipeline
-
-# make links to dereplicated data by ant species
-
-# unclear that grouping by ant sp is the best way to do this ... consider grouping later e.g. when we create stacks
-# rule link_Brendan:
-#     input:
-#         ["out/dereplicated_byant/" + sample[0:2] + "/" + sample + ".1.1.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]],
-#         ["out/dereplicated_byant/" + sample[0:2] + "/" + sample + ".2.2.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]]
 
 ################
 # step 0
@@ -141,15 +122,18 @@ rule dereplicate_sample:
 # step 3
 # prepare ant genomes from Richard in preparation for read mapping
 
+# suffixes for filenames output by bowtie2-build
+BOWTIE_SUFFIXES = ["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"]
+
 rule ant_genomes:
     input:
-        expand("out/genomes/{genome}.{suffix}", genome = ["CM", "CN", "TP"], suffix = ["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"])
+        expand("out/genomes/{genome}.{suffix}", genome = ["CM", "CN", "TP"], suffix = BOWTIE_SUFFIXES)
 
 # temporarily decompress ant genome fasta.gz file since bowtie2-build requires fasta (not fasta.gz) format
-# note use of config['genomes'] to get original file names
+# note use of config['genome_data'] to get original file names
 rule decompress_genome:
     input:
-        lambda wildcards: config['genomes'][wildcards.genome]
+        lambda wildcards: config['genome_data'][wildcards.genome]
     output:
         temp("out/genomes/{genome}.fasta")
     shell:
@@ -161,7 +145,7 @@ rule index_genome:
     input:
         "out/genomes/{genome}.fasta"
     output:
-        expand("out/genomes/{{genome}}.{suffix}", suffix = ["1.bt2","2.bt2","3.bt2","4.bt2","rev.1.bt2","rev.2.bt2"])
+        expand("out/genomes/{{genome}}.{suffix}", suffix = BOWTIE_SUFFIXES)
     threads:
         1
     shell:
@@ -175,24 +159,6 @@ rule index_genome:
 # map reads to indexed ant genomes using bowtie, then quality-filter the matches,
 # sort them, and output them as a .bam file
 
-# note that samples need to be mapped to the right ant genome for the species
-# organize reads by ant species for this purpose (is this a good idea??)
-# rule organize_reads_by_antsp:
-#     input:
-#         # gets plate label based on sample number
-#         file1 = lambda wildcards: "out/dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".1.1.fq.gz",
-#         file2 = lambda wildcards: "out/dereplicated/" + [plate for plate, samples in SAMPLES.items() if wildcards.sample in samples][0] + "/" + wildcards.sample + ".2.2.fq.gz"
-#     output:
-#         # unclear why it adds the extra numbers, but it does
-#         file1="out/dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
-#         file2="out/dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
-#     shell:
-#         # note that file paths for the link are relative to link location, not working directory
-#         """
-#         ln -s ../../{input.file1} {output.file1}
-#         ln -s ../../{input.file2} {output.file2}
-#         """
-
 # conda environment samtools should already be created:
 #     conda create --name samtools1.10
 #     conda activate samtools1.10
@@ -202,99 +168,77 @@ rule index_genome:
 #     conda config --add channels conda-forge
 #     conda install samtools==1.10
 
-# genomes should already be indexed at genomes/CM.*, genomes/CN.* and genomes/TP.*
-
-
 # need to get these samples names automatically
-# rule map_sort:
-#     input:
-#         expand("out/mapped/CM/{sample}.bam", sample = BRENDAN_SAMPLES['CM']),
-#         expand("out/mapped/CN/{sample}.bam", sample = BRENDAN_SAMPLES['CN']),
-#         #expand("out/mapped/CS/{sample}.bam", sample = BRENDAN_SAMPLES['CS']),
-#         expand("out/mapped/TP/{sample}.bam", sample = BRENDAN_SAMPLES['TP'])
+rule all_mapped_samples:
+    input:
+        expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
 # maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
 # 2GB memory is plenty (probably uses more like 600MB)
-# rule map_to_genome:
-#     input:
-#         genome=lambda wildcards: "genomes/{antsp}.done",
-#         fastq1="out/dereplicated_byant/{antsp}/{sample}.1.1.fq.gz",
-#         fastq2="out/dereplicated_byant/{antsp}/{sample}.2.2.fq.gz"
-#     output:
-#         temp("out/mapped/{antsp}/{sample}.sam") # make this temporary since the bam file after sorting is much smaller
-#     params:
-#         # I think we should expect fragments from about 330bp to 540 bp
-#         min_length=300,
-#         max_length=600
-#     threads: 4
-#     #benchmark:
-#     #    "out/mapped/{antsp}/{sample}.map.benchmark.txt"
-#     log:
-#         "out/mapped/{antsp}/{sample}.log"
-#     shell:
-#         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
-#         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
-#         # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
-#         """
-#         module load bowtie2/2.3.2-fasrc02
-#         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
-#         -x genomes/{wildcards.antsp} -1 {input.fastq1} -2 {input.fastq2} -S {output} 2>{log}
-#         """
+rule map_to_genome:
+    input:
+        # first two characters of sample name (i.e. wildcards.sample[0:2]) denote ant species
+        lambda wildcards: ["out/genomes/" + config['genome_mapping'][wildcards.sample[0:2]] + "." + suffix for suffix in BOWTIE_SUFFIXES],
+        fastq1="out/dereplicated/{sample}.1.1.fq.gz",
+        fastq2="out/dereplicated/{sample}.2.2.fq.gz"
+    output:
+        temp("out/mapped/{sample}.sam") # make this temporary since the bam file after sorting is much smaller
+    params:
+        genome=lambda wildcards: "out/genomes/" + config['genome_mapping'][wildcards.sample[0:2]], # stem for genome files to supply to bowtie2 command
+        min_length=config['bowtie2']['min_length'],
+        max_length=config['bowtie2']['max_length']
+    threads: 4
+    #benchmark:
+    #    "out/mapped/{antsp}/{sample}.map.benchmark.txt"
+    log:
+        "out/mapped/{antsp}/{sample}.log"
+    shell:
+        # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
+        # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
+        # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only odded to bowtie-build in 2.2.7
+        """
+        module load bowtie2/2.3.2-fasrc02
+        bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
+        -x {params/genome} -1 {input.fastq1} -2 {input.fastq2} -S {output} 2>{log}
+        """
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
 # note: need to run snakemake --use-conda
-# rule sort_mapped_reads:
-#     input:
-#         "out/mapped/{antsp}/{sample}.sam"
-#     output:
-#         "out/mapped/{antsp}/{sample}.bam"
-#     #benchmark:
-#     #    "out/mapped/{antsp}/{sample}.sort.benchmark.txt"
-#     conda:
-#         "envs/samtools.yaml"
-#     shell:
-#         "samtools view -hq 5 {input} | samtools sort - -o {output}"
+rule sort_mapped_reads:
+    input:
+        "out/mapped/{sample}.sam"
+    output:
+        "out/mapped/{sample}.bam"
+    #benchmark:
+    #    "out/mapped/{antsp}/{sample}.sort.benchmark.txt"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools view -hq 5 {input} | samtools sort - -o {output}"
 
 ################
 
-# examine mappings to genomes
+# examine stats for mappings to genomes
 
-# rule flagstat_CM_CN_TP:
-#     input:
-#         expand("out/mapped/CM/{sample}.flagstat", sample = BRENDAN_SAMPLES['CM']),
-#         expand("out/mapped/CN/{sample}.flagstat", sample = BRENDAN_SAMPLES['CN']),
-#         #expand("out/mapped/CS/{sample}.flagstat", sample = BRENDAN_SAMPLES['CS']),
-#         expand("out/mapped/TP/{sample}.flagstat", sample = BRENDAN_SAMPLES['TP'])
+rule all_mapped_sample_stats:
+    input:
+        expand("out/mapped/{sample}.flagstat", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
-# rule flagstat_mapped_sample:
-#     input:
-#         "out/mapped/{antsp}/{sample}.bam"
-#     output:
-#         "out/mapped/{antsp}/{sample}.flagstat"
-#     conda:
-#         "envs/samtools.yaml"
-#     shell:
-#         "samtools flagstat -O tsv {input} >{output}"
-
-# rule idxstat_mapped_sample:
-#     input:
-#         "out/mapped/{antsp}/{sample}.bam"
-#     output:
-#         "out/mapped/{antsp}/{sample}.idxstat"
-#     conda:
-#         "envs/samtools.yaml"
-#     shell:
-#         "samtools idxstat {input} >{output}"
-
-# rule stat_mapped_sample:
-#     input:
-#         "out/mapped/{antsp}/{sample}.bam"
-#     output:
-#         "out/mapped/{antsp}/{sample}.stat"
-#     conda:
-#         "envs/samtools.yaml"
-#     shell:
-#         "samtools stat {input} >{output}"
+rule mapped_sample_stats:
+    input:
+        "out/mapped/{antsp}/{sample}.bam"
+    output:
+        flagstat="out/mapped/{antsp}/{sample}.flagstat",
+        idxstat="out/mapped/{antsp}/{sample}.idxstat",
+        stat="out/mapped/{antsp}/{sample}.stat"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        '''
+        samtools flagstat -O tsv {input} >{output.flagstat}
+        samtools idxstat {input} >{output.idxstat}
+        samtools stat {input} >{output.stat}
+        '''
 
 ################

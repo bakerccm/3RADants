@@ -12,9 +12,24 @@ plates: [4,5,6,7,8]
 renz_1: nheI
 renz_2: ecoRI
 
-## names of original compressed genome files from Richard ##
+## paths to original compressed genome files from Richard ##
 
-genomes:
+genome_data:
     CM: genomes/Cmimosae_FINAL_VER2.1.fasta.gz
     CN: genomes/Cnig.1.fasta.gz
     TP: genomes/Tpen_r3.1.fasta.gz
+
+## which genome (value) to use for mapping samples from each ant species (key) ##
+
+genome_mapping:
+    CM: CM
+    CN: CN
+    CS: CM # note mapping to CM genome since we don't presently have a CS genome
+    TP: TP
+
+## bowtie2 parameters ##
+
+bowtie2:
+    # I think we should expect fragments from about 330bp to 540 bp
+    min_length: 300
+    max_length: 600
