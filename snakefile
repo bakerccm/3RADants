@@ -237,11 +237,11 @@ rule all_mapped_sample_stats:
 
 rule mapped_sample_stats:
     input:
-        "out/mapped/{antsp}/{sample}.bam"
+        "out/mapped/{sample}.bam"
     output:
-        flagstat="out/mapped/{antsp}/{sample}.flagstat",
-        idxstat="out/mapped/{antsp}/{sample}.idxstat",
-        stat="out/mapped/{antsp}/{sample}.stat"
+        flagstat="out/mapped/{sample}.flagstat",
+        idxstat="out/mapped/{sample}.idxstat",
+        stat="out/mapped/{sample}.stat"
     conda:
         "envs/samtools.yaml"
     shell:
