@@ -53,21 +53,6 @@ rule reformat_metadata:
 
 # rules to run parts of the pipeline
 
-# dereplicate rules
-
-# rule dereplicate_Brendan:
-#     input:
-#         # file lists can be python lists
-#         # supply multiple lists separated by , or concatenate with +
-#         ["out/dereplicated/" + plate + "/" + sample + ".1.1.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]],
-#         ["out/dereplicated/" + plate + "/" + sample + ".2.2.fq.gz" for plate in PLATES_BRENDAN for sample in SAMPLES[plate]]
-
-# demultiplex rules
-
-# rule demultiplex_Brendan:
-#     input:
-#         expand("out/demultiplexed/{plate}", plate = PLATES_BRENDAN)
-
 # make links to dereplicated data by ant species
 
 # unclear that grouping by ant sp is the best way to do this ... consider grouping later e.g. when we create stacks
@@ -133,58 +118,59 @@ for p in config['plates']:
 # step 2
 # remove clones using UMIs, which are in the fastq headers
 
-# rule dereplicate_sample:
-#     input:
-#         # note that we're just ignoring the remainder files for now ... is this what we want?
-#         flag="out/demultiplexed/{plate}/demultiplex.done",
-#         file1="out/demultiplexed/{plate}/{sample}.1.fq.gz",
-#         file2="out/demultiplexed/{plate}/{sample}.2.fq.gz"
-#     output:
-#         # unclear why it adds the extra numbers, but it does
-#         file1="out/dereplicated/{plate}/{sample}.1.1.fq.gz",
-#         file2="out/dereplicated/{plate}/{sample}.2.2.fq.gz"
-#     shell:
-#         """
-#         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-#         clone_filter -1 {input.file1} -2 {input.file2} -o out/dereplicated/{wildcards.plate} --null_index -i gzfastq --oligo_len_2 8
-#         """
+rule dereplicate_all:
+    input:
+        expand("out/dereplicated/{sample}.{read}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
+
+rule dereplicate_sample:
+    input:
+        # note that we're just ignoring the remainder files for now ... is this what we want?
+        file1="out/demultiplexed/{sample}.1.fq.gz",
+        file2="out/demultiplexed/{sample}.2.fq.gz"
+    output:
+        # unclear why it adds the extra numbers, but it does
+        file1="out/dereplicated/{sample}.1.1.fq.gz",
+        file2="out/dereplicated/{sample}.2.2.fq.gz"
+    shell:
+        """
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        clone_filter -1 {input.file1} -2 {input.file2} -o out/dereplicated --null_index -i gzfastq --oligo_len_2 8
+        """
 
 ################
 # step 3
 # prepare ant genomes from Richard in preparation for read mapping
 
-# rule index_ant_genomes:
-#     input:
-#         "genomes/CM.done", "genomes/CN.done", "genomes/TP.done"
-
-# names of original genome files from Richard
-# genome_names={'CM': 'Cmimosae_FINAL_VER2.1', 'CN': 'Cnig.1', 'TP': 'Tpen_r3.1'}
+rule ant_genomes:
+    input:
+        expand("out/genomes/{genome}.{suffix}", genome = ["CM", "CN", "TP"], suffix = ["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"])
 
 # temporarily decompress ant genome fasta.gz file since bowtie2-build requires fasta (not fasta.gz) format
-# rule decompress_ant_genome:
-#     input:
-#         "genomes/{orig_genome}.fasta.gz"
-#     output:
-#         temp("genomes/{orig_genome}.fasta")
-#     shell:
-#         "zcat {input} > {output}"
+# note use of config['genomes'] to get original file names
+rule decompress_genome:
+    input:
+        lambda wildcards: config['genomes'][wildcards.genome]
+    output:
+        temp("out/genomes/{genome}.fasta")
+    shell:
+        "zcat {input} > {output}"
 
 # this runs in ~10 min for CN, 17 min for TP with one thread
 # 2GB memory should be sufficient
-# rule index_ant_genome:
-#     input:
-#         lambda wildcards: "genomes/" + genome_names[wildcards.genome] + ".fasta"
-#     output:
-#         touch("genomes/{genome}.done")
-#     threads:
-#         1
-#     benchmark:
-#         "genomes/{genome}.benchmark.txt"
-#     shell:
-#         """
-#         module load bowtie2/2.3.2-fasrc02
-#         bowtie2-build --threads {threads} {input} genomes/{wildcards.genome}
-#         """
+rule index_genome:
+    input:
+        "out/genomes/{genome}.fasta"
+    output:
+        expand("out/genomes/{{genome}}.{suffix}", suffix = ["1.bt2","2.bt2","3.bt2","4.bt2","rev.1.bt2","rev.2.bt2"])
+    threads:
+        1
+    benchmark:
+        "out/genomes/{genome}.benchmark.txt"
+    shell:
+        """
+        module load bowtie2/2.3.2-fasrc02
+        bowtie2-build --threads {threads} {input} out/genomes/{wildcards.genome}
+        """
 
 ################
 # step 4
