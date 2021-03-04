@@ -52,13 +52,13 @@ rule reformat_metadata:
 
 rule all_fastq_links:
     input:
-        expand("out/data/{link}", link = list(RAWDATA.index))
+        expand("out/data/{link}", link = list(RAWDATA[RAWDATA['plate'].isin(config['plates'])].index))
 
 rule fastq_link:
    input:
-       lambda wildcards: 'data/' + RAWDATA.loc[wildcards.link]['original']
+       lambda wildcards: RAWDATA.loc[wildcards.link]['original']
    output:
-       "out/data/{link}"
+       "{link}"
    shell:
         # note use of -r to get relative link is not available in all versions of ln
         "ln -sr {input} {output}"
