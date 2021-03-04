@@ -1,8 +1,8 @@
-# snakefile for processing 3RAD data from Brendan and PJ's ant and plant samples
+# snakefile for processing 3RAD data from Brendan Kenyan ant samples
 
 # Chris Baker
 # bakerccm@gmail.com
-# 30 August 2020
+# 4 March 2021
 
 # scripts adapted from those supplied by Jack Boyle
 
@@ -13,16 +13,23 @@
 # config['plates'] gives the plate numbers to run (i.e. [4,5,6,7,8] to run Brendan's samples)
 configfile: 'config/config.yaml'
 
-# get metadata
 import pandas as pd
-# mappings to original raw data files
+
+# get mappings from original raw data files to soft links used by process_radtags
 RAWDATA = pd.read_csv("config/rawdata_filenames.csv", header = 0, index_col = 'link')
+
 # sample metadata
+# list(SAMPLES[SAMPLES['plate'] == 4].index) # gives sample names for plate 4
+# list(SAMPLES[SAMPLES['plate'].isin([4,5])].index) # gives sample names for plates 4 and 5
+# list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index) # gives sample names for plates specified in config file
 SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample')
 
-#list(SAMPLES[SAMPLES['plate'] == 3].index) # e.g. get sample names for plate 3
-
-#list(SAMPLES[SAMPLES['plate'].isin([1,2,3])].index)
+################
+# default rule
+# currently the same as rule all_mapped_sample_stats as this should request all files in the pipeline so far
+rule all:
+    input:
+        expand("out/mapped/{sample}.flagstat", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
 ################
 # reformat sample metadata files for use with stacks: one for each plate of samples
@@ -46,9 +53,7 @@ rule reformat_metadata:
         '''
 
 ################
-# step 0
-# create links from input files
-# to conform to naming convention expected by process_radtags
+# create links from original raw data files to conform to naming convention expected by process_radtags
 
 rule all_fastq_links:
     input:
@@ -64,17 +69,13 @@ rule fastq_link:
         "ln -sr {input} {output}"
 
 ################
-# step 1
-# demultiplex each plate
-
-# assumes raw data files have already been renamed using data/create_links.sh
-# to conform to naming convention expected by process_radtags
-
-# use --retain_header to retain i5 index for use as UMI in clone_filter
+# pipeline step 1: demultiplex each plate
 
 # this remove adaptors and trims everything to the same length
 # R1 reads with shorter barcodes get a few extra bp trimmed at the 3' expand
 # so that all the R1 reads end up being 140bp (since the longest barcode is 9+1 bp).
+
+# use --retain_header to retain i5 index for use as UMI in clone_filter
 
 rule demultiplex_all:
     input:
@@ -106,8 +107,7 @@ for p in config['plates']:
             '''
 
 ################
-# step 2
-# remove clones using UMIs, which are in the fastq headers
+# pipeline step 2: remove clones using UMIs, which are in the fastq headers following process_radtags
 
 rule dereplicate_all:
     input:
@@ -129,8 +129,7 @@ rule dereplicate_sample:
         """
 
 ################
-# step 3
-# prepare ant genomes from Richard in preparation for read mapping
+# pipeline step 3: prepare ant genomes from Richard ahead of read mapping
 
 # suffixes for filenames output by bowtie2-build
 BOWTIE_SUFFIXES = ["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"]
@@ -140,7 +139,7 @@ rule prepare_genomes:
         expand("out/genomes/{genome}.{suffix}", genome = ["CM", "CN", "TP"], suffix = BOWTIE_SUFFIXES)
 
 # temporarily decompress ant genome fasta.gz file since bowtie2-build requires fasta (not fasta.gz) format
-# note use of config['genome_data'] to get original file names
+# note use of config['genome_data'] to get original genome file names
 rule decompress_genome:
     input:
         lambda wildcards: config['genome_data'][wildcards.genome]
@@ -165,25 +164,12 @@ rule index_genome:
         """
 
 ################
-# step 4
-# map reads to indexed ant genomes using bowtie, then quality-filter the matches,
-# sort them, and output them as a .bam file
+# pipeline step 4a: map reads to indexed ant genomes using bowtie, then quality-filter the matches, sort them, and output them as a .bam file
 
-# conda environment samtools should already be created:
-#     conda create --name samtools1.10
-#     conda activate samtools1.10
-#     # set conda channels
-#     conda config --add channels defaults
-#     conda config --add channels bioconda
-#     conda config --add channels conda-forge
-#     conda install samtools==1.10
-
-# need to get these samples names automatically
 rule map_all_samples:
     input:
         expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
-# maps reads to indexed ant genome
 # ~2 min per sample with four cores, ~10 min per sample with 1 core
 # 2GB memory is plenty (probably uses more like 600MB)
 rule map_to_genome:
@@ -199,8 +185,6 @@ rule map_to_genome:
         min_length=config['bowtie2']['min_length'],
         max_length=config['bowtie2']['max_length']
     threads: 4
-    #benchmark:
-    #    "out/mapped/{antsp}/{sample}.map.benchmark.txt"
     log:
         "out/mapped/{sample}.log"
     shell:
@@ -214,22 +198,19 @@ rule map_to_genome:
         """
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
-# note: need to run snakemake --use-conda
+# note: need to use --use-conda
 rule sort_mapped_reads:
     input:
         "out/mapped/{sample}.sam"
     output:
         "out/mapped/{sample}.bam"
-    #benchmark:
-    #    "out/mapped/{antsp}/{sample}.sort.benchmark.txt"
     conda:
         "envs/samtools.yaml"
     shell:
         "samtools view -hq 5 {input} | samtools sort - -o {output}"
 
 ################
-
-# examine stats for mappings to genomes
+# pipeline step 4b: examine stats for mappings to genomes
 
 rule all_mapped_sample_stats:
     input:
