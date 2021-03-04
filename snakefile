@@ -135,7 +135,7 @@ rule dereplicate_sample:
 # suffixes for filenames output by bowtie2-build
 BOWTIE_SUFFIXES = ["1.bt2", "2.bt2", "3.bt2", "4.bt2", "rev.1.bt2", "rev.2.bt2"]
 
-rule ant_genomes:
+rule prepare_genomes:
     input:
         expand("out/genomes/{genome}.{suffix}", genome = ["CM", "CN", "TP"], suffix = BOWTIE_SUFFIXES)
 
