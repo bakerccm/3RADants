@@ -13,8 +13,11 @@
 # config['plates'] gives the plate numbers to run (i.e. [4,5,6,7,8] to run Brendan's samples)
 configfile: 'config/config.yaml'
 
-# sample metadata
+# get metadata
 import pandas as pd
+# mappings to original raw data files
+RAWDATA = pd.read_csv("config/rawdata_filenames.csv", header = 0, index_col = 'link')
+# sample metadata
 SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample')
 
 #list(SAMPLES[SAMPLES['plate'] == 3].index) # e.g. get sample names for plate 3
@@ -47,12 +50,14 @@ rule reformat_metadata:
 # create links from input files
 # to conform to naming convention expected by process_radtags
 
-#rule make_fastq_links:
-#    input:
-#        "data/Rawdata/ ?? fastq files"
-#    output:
-#        "data/links/{plate}",
-#    shell:
+rule make_fastq_links:
+   input:
+       lambda wildcards: 'data/' + RAWDATA.loc[wildcards.link]['original']
+   output:
+       "out/data/{link}"
+   shell:
+        # note use of -r to get relative link is not available in all versions of ln
+        "ln -sr {input} {output}"
 
 ################
 # step 1
@@ -81,7 +86,7 @@ for p in config['plates']:
         name:
             'demultiplex_plate' + str(p)
         input:
-            sequences = "data/links/plate" + str(p),
+            sequences = "out/data/plate" + str(p), # contains soft links to original data so files can be grouped by plate
             barcodes = "out/barcodes/sample_tags_plate" + str(p) + ".tsv"
         output:
             # ignores remainder files

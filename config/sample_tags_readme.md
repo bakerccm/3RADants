@@ -2,7 +2,7 @@
 
 ## Barcodes and sample ID information
 
-```metadata/sample_tags.csv``` [md5 84392c84ffe13b9c9f7477ce0d7ed656] is a UTF-8 CSV file giving information on inline barcodes used in this 3RAD sequencing.
+`metadata/sample_tags.csv` [md5 84392c84ffe13b9c9f7477ce0d7ed656] is a UTF-8 CSV file giving information on inline barcodes used in this 3RAD sequencing.
 
 Use this to extract information on barcodes for each sample well within each plate.
 
@@ -12,9 +12,9 @@ This pipeline implements the steps of a fairly generic 3RAD processing pipeline,
 
 - Some of PJ's samples are non-uniquely labelled. There are cases where multiple wells (either on the same plate or on different plates) have the same sample ID. Presumably these are different WGA products or something like that. This pipeline is not currently designed to deal with non-uniquely named samples. Depending on what makes biological sense, the pipeline should probably be modified to either concatenate reads from those samples, or rename those samples with unique names, perhaps using plate and well identifiers in conjunction with sample names.
 
-- The first two characters of Brendan's sample names denote the species of the sample, and this is used by the pipeline (in conjunction with genome_mapping in ```config.yaml```) to identify the genome to map reads to. PJ's samples follow a different naming convention. The snakefile would likely need to be modified. ```sample_tags.csv``` could also be used to identify the species of each sample if this cannot be extracted from the sample name.
+- The first two characters of Brendan's sample names denote the species of the sample, and this is used by the pipeline (in conjunction with genome_mapping in `config.yaml`) to identify the genome to map reads to. PJ's samples follow a different naming convention. The snakefile would likely need to be modified. `sample_tags.csv` could also be used to identify the species of each sample if this cannot be extracted from the sample name.
 
-- PJ's samples need to be mapped to different genomes than Brendan's. It is likely that this information can simply be added to genome_mapping in ```config.yaml``` if the species of each sample can be extracted from the sample name or from ```sample_tags.csv```.
+- PJ's samples need to be mapped to different genomes than Brendan's. It is likely that this information can simply be added to genome_mapping in `config.yaml` if the species of each sample can be extracted from the sample name or from `sample_tags.csv`.
 
 - Other parameters such as the restriction enzymes and length filtering parameters are currently specified in ```config.yaml``` and apply across all samples. These values may need to be modified if processing other samples, or potentially made contingent on the sample if the values do not apply across all samples.
 
@@ -32,4 +32,4 @@ Note addition of G and T at end of tags (between tag and restriction site).
 
 Note also replacement of '/' with '-' since only letters, numbers, '.', '-' and '_' are allowed by ```process_radtags```.
 
-This conversion is carried out by the rule ```all_reformat_metadata``` and ```reformat_metadata```, but note that shell commands in ```snakefile``` look different e.g. due to use of snakemake wildcards and double braces to escape braces that need to be passed to ```bash```.
+This conversion is carried out by the rule `all_reformat_metadata` and `reformat_metadata`, but note that shell commands in `snakefile` look different e.g. due to use of snakemake wildcards and double braces to escape braces that need to be passed to `bash`.
