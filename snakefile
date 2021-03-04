@@ -58,7 +58,7 @@ rule fastq_link:
    input:
        lambda wildcards: RAWDATA.loc[wildcards.link]['original']
    output:
-       "{link}"
+       "{link,^out/data/.*\.fastq.gz$}"
    shell:
         # note use of -r to get relative link is not available in all versions of ln
         "ln -sr {input} {output}"
