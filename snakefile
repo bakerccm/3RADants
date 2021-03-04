@@ -52,7 +52,7 @@ rule reformat_metadata:
 
 rule all_fastq_links:
     input:
-        expand("out/data/{link}", link = list(RAWDATA[RAWDATA['plate'].isin(config['plates'])].index))
+        list(RAWDATA[RAWDATA['plate'].isin(config['plates'])].index)
 
 rule fastq_link:
    input:
