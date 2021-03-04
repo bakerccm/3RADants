@@ -56,10 +56,9 @@ rule all_fastq_links:
 
 rule fastq_link:
    input:
-       lambda wildcards: RAWDATA.loc[wildcards.output]['original']
-       #lambda wildcards: RAWDATA.loc["out/data/" + wildcards.plate + "/" + wildcards.file + ".fastq.gz"]['original']
+       lambda wildcards: RAWDATA.loc["out/data/plate" + wildcards.plate + "/" + wildcards.file + ".fastq.gz"]['original']
    output:
-       "out/data/{plate}/{file}.fastq.gz"
+       "out/data/plate{plate}/{file}.fastq.gz"
    shell:
         # note use of -r to get relative link is not available in all versions of ln
         "ln -sr {input} {output}"
