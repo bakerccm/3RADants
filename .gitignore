@@ -1,24 +1,19 @@
 # Mac OSX files
 **/.DS_Store
 
-.snakemake/
-snakemake.err
-snakemake.out
+/.snakemake
+/snakemake.err
+/snakemake.out
 
 dag_filegraph.svg
 dag_rulegraph.svg
 
 /out
 
-#data/Rawdata/
-#data/UMI/
-#data/checkSize.xls
-#data/links/
-#demultiplexed/
-#dereplicated/
-#dereplicated_byant/
-#genomes/
-#mapped/
+/data
+
+/genomes
+!genomes/readme.txt
 
 # keep .gitkeep files everywhere
 !.gitkeep
