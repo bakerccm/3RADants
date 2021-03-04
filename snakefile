@@ -179,7 +179,7 @@ rule index_genome:
 #     conda install samtools==1.10
 
 # need to get these samples names automatically
-rule all_mapped_samples:
+rule map_all_samples:
     input:
         expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
