@@ -86,18 +86,19 @@ for p in config['plates']:
         name:
             'demultiplex_plate' + str(p)
         input:
-            sequences = "out/data/plate" + str(p), # contains soft links to original data so files can be grouped by plate
+            ["out/data/plate" + str(p) + "/plate" + str(p) + "_" + r + "_" + s + ".fastq.gz" for r in ["R1", "R2"] for s in ["001", "002", "003"],
             barcodes = "out/barcodes/sample_tags_plate" + str(p) + ".tsv"
         output:
             # ignores remainder files
             expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'] == p].index), read = [1,2])
         params:
+            sequences = "out/data/plate" + str(p), # folder containing soft links to original data
             renz_1 = config['renz_1'],
             renz_2 = config['renz_2']
         shell:
             '''
             module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-            process_radtags -P -p {input.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
+            process_radtags -P -p {params.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
             '''
 
 ################
