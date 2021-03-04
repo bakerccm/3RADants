@@ -86,7 +86,7 @@ for p in config['plates']:
         name:
             'demultiplex_plate' + str(p)
         input:
-            ["out/data/plate" + str(p) + "/plate" + str(p) + "_" + r + "_" + s + ".fastq.gz" for r in ["R1", "R2"] for s in ["001", "002", "003"],
+            ["out/data/plate" + str(p) + "/plate" + str(p) + "_" + r + "_" + s + ".fastq.gz" for r in ["R1", "R2"] for s in ["001", "002", "003"]],
             barcodes = "out/barcodes/sample_tags_plate" + str(p) + ".tsv"
         output:
             # ignores remainder files
