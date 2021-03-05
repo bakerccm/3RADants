@@ -216,22 +216,47 @@ rule sort_mapped_reads:
 
 rule all_mapped_sample_stats:
     input:
-        expand("out/mapped/{sample}.flagstat", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
+        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stat"])
+
+rule mapped_sample_index:
+    input:
+        "out/mapped/{sample}.bam"
+    output:
+        "out/mapped/{sample}.bam.bai"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools index {input}"
+
+rule mapped_sample_flagstat:
+    input:
+        "out/mapped/{sample}.bam"
+    output:
+        "out/mapped/{sample}.flagstat"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools flagstat -O tsv {input} >{output}"
+
+rule mapped_sample_idxstat:
+    input:
+        bam="out/mapped/{sample}.bam",
+        bai="out/mapped/{sample}.bam.bai"
+    output:
+        "out/mapped/{sample}.idxstat"
+    conda:
+        "envs/samtools.yaml"
+    shell:
+        "samtools idxstat {input.bam} >{output}"
 
 rule mapped_sample_stats:
     input:
         "out/mapped/{sample}.bam"
     output:
-        flagstat="out/mapped/{sample}.flagstat",
-        idxstat="out/mapped/{sample}.idxstat",
-        stat="out/mapped/{sample}.stat"
+        "out/mapped/{sample}.stats"
     conda:
         "envs/samtools.yaml"
     shell:
-        '''
-        samtools flagstat -O tsv {input} >{output.flagstat}
-        samtools idxstat {input} >{output.idxstat}
-        samtools stat {input} >{output.stat}
-        '''
+        "samtools stats {input} >{output}"
 
 ################
