@@ -86,6 +86,7 @@ rule demultiplex_all:
 # - alternatively, if you write a rule that just specifies a single sample's outputs rather than all the output files for a plate, the rule runs once per sample rather than once per plate
 # - see discussion at https://stackoverflow.com/questions/41135801/snakemake-best-practice-for-demultiplexing
 # - note: requires snakemake 5.31.0 or later for 'name' keyword to work
+# runs in ~40 min per plate (32GB works, 16GB seems to be not enough)
 for p in config['plates']:
     rule:
         name:
@@ -113,6 +114,7 @@ rule dereplicate_all:
     input:
         expand("out/dereplicated/{sample}.{read}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
 
+# runs in 30-60 s per sample (96 per plate) (32GB but probably uses much less)
 rule dereplicate_sample:
     input:
         # note that we're just ignoring the remainder files for now ... is this what we want?
@@ -148,7 +150,7 @@ rule decompress_genome:
     shell:
         "zcat {input} > {output}"
 
-# this runs in ~10 min for CN, 17 min for TP with one thread
+# this runs in ~10-20 min per genome
 # 2GB memory should be sufficient
 rule index_genome:
     input:
@@ -170,8 +172,7 @@ rule map_all_samples:
     input:
         expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
-# ~2 min per sample with four cores, ~10 min per sample with 1 core
-# 2GB memory is plenty (probably uses more like 600MB)
+# 3-12 min per sample with four cores on interactive, runs with 1GB total memory
 rule map_to_genome:
     input:
         # first two characters of sample name (i.e. wildcards.sample[0:2]) denote ant species
@@ -199,6 +200,7 @@ rule map_to_genome:
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
 # note: need to use --use-conda
+# ~ 1 min per sample, 1GB memory is sufficient
 rule sort_mapped_reads:
     input:
         "out/mapped/{sample}.sam"
