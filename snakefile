@@ -216,7 +216,7 @@ rule sort_mapped_reads:
 
 rule all_mapped_sample_stats:
     input:
-        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stat"])
+        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"])
 
 rule mapped_sample_index:
     input:
