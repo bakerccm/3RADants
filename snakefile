@@ -29,7 +29,7 @@ SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample'
 # currently the same as rule all_mapped_sample_stats as this should request all files in the pipeline so far
 rule all:
     input:
-        expand("out/mapped/{sample}.flagstat", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
+        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"])
 
 ################
 # reformat sample metadata files for use with stacks: one for each plate of samples
