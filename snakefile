@@ -172,7 +172,7 @@ rule map_all_samples:
     input:
         expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
 
-# 3-12 min per sample with four cores on interactive, runs with 1GB total memory
+# 1.5 hours with 40 cores, 10Gb memory to map and sort all 5 plates of samples, and calculate stats
 rule map_to_genome:
     input:
         # first two characters of sample name (i.e. wildcards.sample[0:2]) denote ant species
