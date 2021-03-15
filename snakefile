@@ -269,8 +269,12 @@ rule make_population_maps:
     output:
         "out/population_maps/{sample}.tsv"
     run:
-        popmap = SAMPLES[SAMPLES.species == {wildcards.sample}].index.to_frame(index=False)
+        popmap = SAMPLES[SAMPLES.species == wildcards.sample].index.to_frame(index=False)
         popmap['population'] = 1
-        popmap.to_csv("out/population_maps/" + {wildcards.sample} + ".tsv", index = False, sep = "\t", header = False)
+        popmap.to_csv("out/population_maps/" + wildcards.sample + ".tsv", index = False, sep = "\t", header = False)
+
+
+
+
 
 ################
