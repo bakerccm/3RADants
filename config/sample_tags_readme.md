@@ -12,7 +12,7 @@ This pipeline implements the steps of a fairly generic 3RAD processing pipeline,
 
 - Some of PJ's samples are non-uniquely labelled. There are cases where multiple wells (either on the same plate or on different plates) have the same sample ID. Presumably these are different WGA products or something like that. This pipeline is not currently designed to deal with non-uniquely named samples. Depending on what makes biological sense, the pipeline should probably be modified to either concatenate reads from those samples, or rename those samples with unique names, perhaps using plate and well identifiers in conjunction with sample names.
 
-- The first two characters of Brendan's sample names denote the species of the sample, and this is used by the pipeline (in conjunction with genome_mapping in `config.yaml`) to identify the genome to map reads to. PJ's samples follow a different naming convention. The snakefile would likely need to be modified. `sample_tags.csv` could also be used to identify the species of each sample if this cannot be extracted from the sample name.
+- The species of each sample is listed in sample_tags.csv for Brendan's samples. This is currently empty for PJ's samples. This information is used by the pipeline (in conjunction with genome_mapping in `config.yaml`) to identify the genome to map reads to, and to determine which samples to group for `gstacks`.
 
 - PJ's samples need to be mapped to different genomes than Brendan's. It is likely that this information can simply be added to genome_mapping in `config.yaml` if the species of each sample can be extracted from the sample name or from `sample_tags.csv`.
 

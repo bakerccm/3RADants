@@ -175,14 +175,14 @@ rule map_all_samples:
 # 1.5 hours with 40 cores, 10Gb memory to map and sort all 5 plates of samples, and calculate stats
 rule map_to_genome:
     input:
-        # first two characters of sample name (i.e. wildcards.sample[0:2]) denote ant species
-        lambda wildcards: ["out/genomes/" + config['genome_mapping'][wildcards.sample[0:2]] + "." + suffix for suffix in BOWTIE_SUFFIXES],
+        # get ant species from SAMPLES and then use dict from config.yaml to determine which genome to map to
+        lambda wildcards: ["out/genomes/" + config['genome_mapping'][SAMPLES.loc[wildcards.sample].species] + "." + suffix for suffix in BOWTIE_SUFFIXES],
         fastq1="out/dereplicated/{sample}.1.1.fq.gz",
         fastq2="out/dereplicated/{sample}.2.2.fq.gz"
     output:
         temp("out/mapped/{sample}.sam") # make this temporary since the bam file after sorting is much smaller
     params:
-        genome=lambda wildcards: "out/genomes/" + config['genome_mapping'][wildcards.sample[0:2]], # stem for genome files to supply to bowtie2 command
+        genome=lambda wildcards: "out/genomes/" + config['genome_mapping'][SAMPLES.loc[wildcards.sample].species], # stem for genome files to supply to bowtie2 command
         min_length=config['bowtie2']['min_length'],
         max_length=config['bowtie2']['max_length']
     threads: 4
@@ -258,5 +258,19 @@ rule mapped_sample_stats:
         "envs/samtools.yaml"
     shell:
         "samtools stats {input} >{output}"
+
+################
+# make population maps for stacks
+# (each ant species gets a separate map, but all individuals are labelled as being in the same population here)
+
+rule make_population_maps:
+    input:
+        "config/sample_tags.csv"
+    output:
+        "out/population_maps/{sample}.tsv"
+    run:
+        popmap = SAMPLES[SAMPLES.species == {wildcards.sample}].index.to_frame(index=False)
+        popmap['population'] = 1
+        popmap.to_csv("out/population_maps/" + {wildcards.sample} + ".tsv", index = False, sep = "\t", header = False)
 
 ################
