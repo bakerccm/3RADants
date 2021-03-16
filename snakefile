@@ -19,9 +19,9 @@ import pandas as pd
 RAWDATA = pd.read_csv("config/rawdata_filenames.csv", header = 0, index_col = 'link')
 
 # sample metadata
-# list(SAMPLES[SAMPLES['plate'] == 4].index) # gives sample names for plate 4
-# list(SAMPLES[SAMPLES['plate'].isin([4,5])].index) # gives sample names for plates 4 and 5
-# list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index) # gives sample names for plates specified in config file
+# list(SAMPLES[SAMPLES.plate == 4].index) # gives sample names for plate 4
+# list(SAMPLES[SAMPLES.plate.isin([4,5])].index) # gives sample names for plates 4 and 5
+# list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index) # gives sample names for plates specified in config file
 SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample')
 
 ################
@@ -29,7 +29,7 @@ SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample'
 # currently the same as rule all_mapped_sample_stats as this should request all files in the pipeline so far
 rule all:
     input:
-        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"])
+        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"])
 
 ################
 # reformat sample metadata files for use with stacks: one for each plate of samples
@@ -57,11 +57,11 @@ rule reformat_metadata:
 
 rule all_fastq_links:
     input:
-        list(RAWDATA[RAWDATA['plate'].isin(config['plates'])].index)
+        list(RAWDATA[RAWDATA.plate.isin(config['plates'])].index)
 
 rule fastq_link:
    input:
-       lambda wildcards: RAWDATA.loc["out/data/plate" + wildcards.plate + "/" + wildcards.file + ".fastq.gz"]['original']
+       lambda wildcards: RAWDATA.loc["out/data/plate" + wildcards.plate + "/" + wildcards.file + ".fastq.gz"].original
    output:
        "out/data/plate{plate}/{file}.fastq.gz"
    shell:
@@ -79,7 +79,7 @@ rule fastq_link:
 
 rule demultiplex_all:
     input:
-        expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
+        expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index), read = [1,2])
 
 # generates a demultiplex rule for each plate
 # - list of output files varies by plate but this can't be left as a wildcard in the output expand() if a single rule is used for all plates
@@ -96,7 +96,7 @@ for p in config['plates']:
             barcodes = "out/barcodes/sample_tags_plate" + str(p) + ".tsv"
         output:
             # ignores remainder files
-            expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'] == p].index), read = [1,2])
+            expand("out/demultiplexed/{sample}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES.plate == p].index), read = [1,2])
         params:
             sequences = "out/data/plate" + str(p), # folder containing soft links to original data
             renz_1 = config['renz_1'],
@@ -112,7 +112,7 @@ for p in config['plates']:
 
 rule dereplicate_all:
     input:
-        expand("out/dereplicated/{sample}.{read}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), read = [1,2])
+        expand("out/dereplicated/{sample}.{read}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index), read = [1,2])
 
 # runs in 30-60 s per sample (96 per plate) (32GB but probably uses much less)
 rule dereplicate_sample:
@@ -170,7 +170,7 @@ rule index_genome:
 
 rule map_all_samples:
     input:
-        expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index))
+        expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index))
 
 # 1.5 hours with 40 cores, 10Gb memory to map and sort all 5 plates of samples, and calculate stats
 rule map_to_genome:
@@ -216,7 +216,7 @@ rule sort_mapped_reads:
 
 rule all_mapped_sample_stats:
     input:
-        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES['plate'].isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"])
+        expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"])
 
 rule mapped_sample_index:
     input:
@@ -273,8 +273,38 @@ rule make_population_maps:
         popmap['population'] = 1
         popmap.to_csv("out/population_maps/" + wildcards.sample + ".tsv", index = False, sep = "\t", header = False)
 
+################
+# run gstacks and populations
+# these rules replace a single run of ref_map.pl:
+#   ref_map.pl --samples out/mapped --popmap out/population_maps/TP.tsv -o out/gstacks -T 8 -d
 
+# jack uses 72 hours with 40 threads for ref_map.pl
+# should we --rm-pcr-duplicates ?
 
+rule gstacks:
+    input:
+        lambda wildcards: ["out/mapped/" + sample + ".bam" for sample in list(SAMPLES[SAMPLES.species == wildcards.species].index)],
+        popmap = "out/population_maps/{species}.tsv"
+        
+    output:
+        "out/gstacks/{species}/catalog.fa.gz",
+        "out/gstacks/{species}/catalog.calls"
+    shell:
+        '''
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t 8
+        '''
 
+#rule populations_TP:
+#    input:
+#        "out/gstacks/{species}/catalog.fa.gz",
+#        "out/gstacks/{species}/catalog.calls"
+#    output:
+#
+#    shell:
+#        '''
+#        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+#        populations -P out/gstacks -M out/population_maps/TP.tsv -O out/populations -t 8
+#        '''
 
 ################
