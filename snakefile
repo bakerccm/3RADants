@@ -86,7 +86,7 @@ rule demultiplex_all:
 # - alternatively, if you write a rule that just specifies a single sample's outputs rather than all the output files for a plate, the rule runs once per sample rather than once per plate
 # - see discussion at https://stackoverflow.com/questions/41135801/snakemake-best-practice-for-demultiplexing
 # - note: requires snakemake 5.31.0 or later for 'name' keyword to work
-# runs in ~40 min per plate (32GB works, 16GB seems to be not enough)
+# runs in ~1 hour per plate (32GB works, 16GB seems to be not enough)
 for p in config['plates']:
     rule:
         name:
