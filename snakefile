@@ -110,11 +110,12 @@ for p in config['plates']:
 ################
 # pipeline step 2: remove clones using UMIs, which are in the fastq headers following process_radtags
 
+# runs on all samples in 5:10h with 1 core, 24Gb (but probably uses less)
 rule dereplicate_all:
     input:
         expand("out/dereplicated/{sample}.{read}.{read}.fq.gz", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index), read = [1,2])
 
-# runs in 30-60 s per sample (96 per plate) (32GB but probably uses much less)
+# runs in ~30-60 s per sample, 1 core, 24Gb per core (but probably uses less)
 rule dereplicate_sample:
     input:
         # note that we're just ignoring the remainder files for now ... is this what we want?
@@ -172,7 +173,7 @@ rule map_all_samples:
     input:
         expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index))
 
-# 1.5 hours with 40 cores, 10Gb memory to map and sort all 5 plates of samples, and calculate stats
+# 1.5 hours with 40 cores, total 10Gb memory to map and sort all 5 plates of samples, and calculate stats
 rule map_to_genome:
     input:
         # get ant species from SAMPLES and then use dict from config.yaml to determine which genome to map to
