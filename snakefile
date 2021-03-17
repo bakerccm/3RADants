@@ -288,8 +288,8 @@ rule make_population_maps:
 
 rule all_gstacks:
     input:
-        ["out/gstacks/" + species + "/catalog.fa.gz" for species in SAMPLES.species.unique()],
-        ["out/gstacks/" + species + "/catalog.calls" for species in SAMPLES.species.unique()]
+        ["out/gstacks/" + species + "/catalog.fa.gz" for species in SAMPLES.species.unique() if not pd.isna(species)],
+        ["out/gstacks/" + species + "/catalog.calls" for species in SAMPLES.species.unique() if not pd.isna(species)]
 
 rule CM_gstacks:
     input:
