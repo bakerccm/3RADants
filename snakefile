@@ -212,7 +212,7 @@ rule sort_mapped_reads:
     log:
         "out/mapped/{sample}_sort.log"
     shell:
-        "samtools view -hq 5 {input} | samtools sort - -o {output}"
+        "samtools view -hq 5 {input} | samtools sort - -o {output} 2>{log}"
 
 ################
 # pipeline step 4b: examine stats for mappings to genomes
