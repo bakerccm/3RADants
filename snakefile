@@ -209,6 +209,8 @@ rule sort_mapped_reads:
         "out/mapped/{sample}.bam"
     conda:
         "envs/samtools.yaml"
+    log:
+        "out/mapped/{sample}_sort.log"
     shell:
         "samtools view -hq 5 {input} | samtools sort - -o {output}"
 
