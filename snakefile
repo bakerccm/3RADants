@@ -268,17 +268,17 @@ rule mapped_sample_stats:
 
 rule all_population_maps:
     input:
-        expand("out/population_maps/{sample}.tsv", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index))
+        ["out/population_maps/" + species + ".tsv" for species in SAMPLES.species.unique() if not pd.isna(species)]
 
 rule make_population_maps:
     input:
         "config/sample_tags.csv"
     output:
-        "out/population_maps/{sample}.tsv"
+        "out/population_maps/{species}.tsv"
     run:
-        popmap = SAMPLES[SAMPLES.species == wildcards.sample].index.to_frame(index=False)
+        popmap = SAMPLES[SAMPLES.species == wildcards.species].index.to_frame(index=False)
         popmap['population'] = 1
-        popmap.to_csv("out/population_maps/" + wildcards.sample + ".tsv", index = False, sep = "\t", header = False)
+        popmap.to_csv("out/population_maps/" + wildcards.species + ".tsv", index = False, sep = "\t", header = False)
 
 ################
 # run gstacks and populations
