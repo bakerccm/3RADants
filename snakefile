@@ -174,6 +174,7 @@ rule map_all_samples:
         expand("out/mapped/{sample}.bam", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index))
 
 # 1.5 hours with 40 cores, total 10Gb memory to map and sort all 5 plates of samples, and calculate stats
+# i.e. steps 4a and 4b combined
 rule map_to_genome:
     input:
         # get ant species from SAMPLES and then use dict from config.yaml to determine which genome to map to
@@ -301,14 +302,15 @@ rule gstacks:
     input:
         lambda wildcards: ["out/mapped/" + sample + ".bam" for sample in list(SAMPLES[SAMPLES.species == wildcards.species].index)],
         popmap = "out/population_maps/{species}.tsv"
-        
     output:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls"
+    threads:
+        4
     shell:
         '''
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t 8
+        gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}
         '''
 
 #rule populations_TP:
