@@ -264,6 +264,10 @@ rule mapped_sample_stats:
 # make population maps for stacks
 # (each ant species gets a separate map, but all individuals are labelled as being in the same population here)
 
+rule all_population_maps:
+    input:
+        expand("out/population_maps/{sample}.tsv", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index))
+
 rule make_population_maps:
     input:
         "config/sample_tags.csv"
