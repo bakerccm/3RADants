@@ -286,6 +286,15 @@ rule make_population_maps:
 # jack uses 72 hours with 40 threads for ref_map.pl
 # should we --rm-pcr-duplicates ?
 
+rule all_gstacks:
+    input:
+        ["out/gstacks/" + species + "/catalog.fa.gz" for species in SAMPLES.species.unique()],
+        ["out/gstacks/" + species + "/catalog.calls" for species in SAMPLES.species.unique()]
+
+rule CM_gstacks:
+    input:
+        "out/gstacks/CM/catalog.fa.gz", "out/gstacks/CM/catalog.calls"
+
 rule gstacks:
     input:
         lambda wildcards: ["out/mapped/" + sample + ".bam" for sample in list(SAMPLES[SAMPLES.species == wildcards.species].index)],
