@@ -302,7 +302,7 @@ rule gstacks:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls"
     threads:
-        4
+        1
     shell:
         '''
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
