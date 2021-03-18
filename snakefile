@@ -317,7 +317,7 @@ rule populations:
         "out/gstacks/{species}/catalog.calls"
     output:
         "out/populations/{species}/populations.log"
-    threads: 1
+    threads: 2
     shell:
         '''
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
