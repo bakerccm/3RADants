@@ -301,24 +301,28 @@ rule gstacks:
     output:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls"
-    threads:
-        1
+    threads: 1
     shell:
         '''
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
         gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}
         '''
 
-#rule populations_TP:
-#    input:
-#        "out/gstacks/{species}/catalog.fa.gz",
-#        "out/gstacks/{species}/catalog.calls"
-#    output:
-#
-#    shell:
-#        '''
-#        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-#        populations -P out/gstacks -M out/population_maps/TP.tsv -O out/populations -t 8
-#        '''
+rule all_populations:
+    input:
+        ["out/populations/" + species + "/populations.log" for species in SAMPLES.species.unique() if not pd.isna(species)]
+
+rule populations:
+    input:
+        "out/gstacks/{species}/catalog.fa.gz",
+        "out/gstacks/{species}/catalog.calls"
+    output:
+        "out/populations/{species}/populations.log"
+    threads: 1
+    shell:
+        '''
+        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
+        populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv -O out/populations/{wildcards.species} -t {threads}
+        '''
 
 ################
