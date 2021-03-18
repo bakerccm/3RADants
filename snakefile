@@ -286,9 +286,7 @@ rule make_population_maps:
 # these rules replace a single run of ref_map.pl:
 #   ref_map.pl --samples out/mapped --popmap out/population_maps/TP.tsv -o out/gstacks -T 8 -d
 
-# jack uses 72 hours with 40 threads for ref_map.pl
-# should we --rm-pcr-duplicates ?
-
+# runs for ~20 min with 8 cores, total 32G memory
 rule all_gstacks:
     input:
         ["out/gstacks/" + species + "/catalog.fa.gz" for species in SAMPLES.species.unique() if not pd.isna(species)],
@@ -301,13 +299,14 @@ rule gstacks:
     output:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls"
-    threads: 1
+    threads: 2
     shell:
         '''
         module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
         gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}
         '''
 
+# runs for ??? min with 4 cores, total 16G memory
 rule all_populations:
     input:
         ["out/populations/" + species + "/populations.log" for species in SAMPLES.species.unique() if not pd.isna(species)]
