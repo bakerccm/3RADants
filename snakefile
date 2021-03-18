@@ -294,10 +294,6 @@ rule all_gstacks:
         ["out/gstacks/" + species + "/catalog.fa.gz" for species in SAMPLES.species.unique() if not pd.isna(species)],
         ["out/gstacks/" + species + "/catalog.calls" for species in SAMPLES.species.unique() if not pd.isna(species)]
 
-rule CM_gstacks:
-    input:
-        "out/gstacks/CM/catalog.fa.gz", "out/gstacks/CM/catalog.calls"
-
 rule gstacks:
     input:
         lambda wildcards: ["out/mapped/" + sample + ".bam" for sample in list(SAMPLES[SAMPLES.species == wildcards.species].index)],
