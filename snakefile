@@ -29,8 +29,7 @@ SAMPLES = pd.read_csv("config/sample_tags.csv", header = 0, index_col = 'sample'
 rule all:
     input:
         expand("out/mapped/{sample}.{ext}", sample = list(SAMPLES[SAMPLES.plate.isin(config['plates'])].index), ext = ["flagstat", "idxstat", "stats"]),
-        ["out/gstacks/" + species + "/catalog.fa.gz" for species in SAMPLES.species.unique() if not pd.isna(species)],
-        ["out/gstacks/" + species + "/catalog.calls" for species in SAMPLES.species.unique() if not pd.isna(species)]
+        ["out/populations_1/" + species + "/populations.log" for species in SAMPLES.species.unique() if not pd.isna(species)]
 
 ################
 # reformat sample metadata files for use with stacks: one for each plate of samples
