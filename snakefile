@@ -325,4 +325,21 @@ rule populations:
     shell:
         "populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv -O out/populations/{wildcards.species} -t {threads}"
 
+# this is just the same as rule populations except you get genepop output
+rule populations_1:
+    input:
+        "out/gstacks/{species}/catalog.fa.gz",
+        "out/gstacks/{species}/catalog.calls"
+    output:
+        "out/populations_1/{species}/populations.log"
+    envmodules:
+        "gcc/7.1.0-fasrc01",
+        "stacks/2.4-fasrc01"
+    threads: 2
+    shell:
+        '''
+        populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv \
+        -O out/populations_1/{wildcards.species} -t {threads} --genepop
+        '''
+
 ################
