@@ -308,24 +308,11 @@ rule gstacks:
         "gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}"
 
 # runs for ~2 min with 8 cores, total 32G memory (2 threads per job)
-rule all_populations:
+rule all_populations_1:
     input:
-        ["out/populations/" + species + "/populations.log" for species in SAMPLES.species.unique() if not pd.isna(species)]
+        ["out/populations_1/" + species + "/populations.log" for species in SAMPLES.species.unique() if not pd.isna(species)]
 
-rule populations:
-    input:
-        "out/gstacks/{species}/catalog.fa.gz",
-        "out/gstacks/{species}/catalog.calls"
-    output:
-        "out/populations/{species}/populations.log"
-    envmodules:
-        "gcc/7.1.0-fasrc01",
-        "stacks/2.4-fasrc01"
-    threads: 2
-    shell:
-        "populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv -O out/populations/{wildcards.species} -t {threads}"
-
-# this is just the same as rule populations except you get genepop output
+# produces genepop output (among other things) which works with Jack's genepopper.pl script
 rule populations_1:
     input:
         "out/gstacks/{species}/catalog.fa.gz",
