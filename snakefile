@@ -101,11 +101,11 @@ for p in config['plates']:
             sequences = "out/data/plate" + str(p), # folder containing soft links to original data
             renz_1 = config['renz_1'],
             renz_2 = config['renz_2']
+        envmodules:
+            "gcc/7.1.0-fasrc01",
+            "stacks/2.4-fasrc01"
         shell:
-            '''
-            module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-            process_radtags -P -p {params.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header
-            '''
+            "process_radtags -P -p {params.sequences} -b {input.barcodes} -o out/demultiplexed -c -q -r --inline_inline --renz_1 {params.renz_1} --renz_2 {params.renz_2} --retain_header"
 
 ################
 # pipeline step 2: remove clones using UMIs, which are in the fastq headers following process_radtags
@@ -125,11 +125,11 @@ rule dereplicate_sample:
         # unclear why it adds the extra numbers, but it does
         file1="out/dereplicated/{sample}.1.1.fq.gz",
         file2="out/dereplicated/{sample}.2.2.fq.gz"
+    envmodules:
+        "gcc/7.1.0-fasrc01",
+        "stacks/2.4-fasrc01"
     shell:
-        """
-        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        clone_filter -1 {input.file1} -2 {input.file2} -o out/dereplicated --null_index -i gzfastq --oligo_len_2 8
-        """
+        "clone_filter -1 {input.file1} -2 {input.file2} -o out/dereplicated --null_index -i gzfastq --oligo_len_2 8"
 
 ################
 # pipeline step 3: prepare ant genomes from Richard ahead of read mapping
@@ -158,13 +158,12 @@ rule index_genome:
         "out/genomes/{genome}.fasta"
     output:
         expand("out/genomes/{{genome}}.{suffix}", suffix = BOWTIE_SUFFIXES)
+    envmodules:
+        "bowtie2/2.3.2-fasrc02"
     threads:
         1
     shell:
-        """
-        module load bowtie2/2.3.2-fasrc02
-        bowtie2-build --threads {threads} {input} out/genomes/{wildcards.genome}
-        """
+        "bowtie2-build --threads {threads} {input} out/genomes/{wildcards.genome}"
 
 ################
 # pipeline step 4a: map reads to indexed ant genomes using bowtie, then quality-filter the matches, sort them, and output them as a .bam file
@@ -187,6 +186,8 @@ rule map_to_genome:
         genome=lambda wildcards: "out/genomes/" + config['genome_mapping'][SAMPLES.loc[wildcards.sample].species], # stem for genome files to supply to bowtie2 command
         min_length=config['bowtie2']['min_length'],
         max_length=config['bowtie2']['max_length']
+    envmodules:
+        "bowtie2/2.3.2-fasrc02"
     threads: 4
     log:
         "out/mapped/{sample}.log"
@@ -194,11 +195,10 @@ rule map_to_genome:
         # Command from Jack specified --end-to-end and --very-sensitive-local but these seem mutually exclusive.
         # Instead try --end-to-end and --very-sensitive, per Jack's suggestion by email 5 Feb 2020.
         # can't use module load bowtie2/2.2.6-fasrc01 as I think --threads was only added to bowtie-build in 2.2.7
-        """
-        module load bowtie2/2.3.2-fasrc02
+        '''
         bowtie2 --end-to-end --very-sensitive -p {threads} -I {params.min_length} -X {params.max_length} \
         -x {params.genome} -1 {input.fastq1} -2 {input.fastq2} -S {output} 2>{log}
-        """
+        '''
 
 # sorts mapped reads (.sam file from map_to_genome is discarded after this completes)
 # note: need to use --use-conda
@@ -299,12 +299,12 @@ rule gstacks:
     output:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls"
+    envmodules:
+        "gcc/7.1.0-fasrc01",
+        "stacks/2.4-fasrc01"
     threads: 2
     shell:
-        '''
-        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}
-        '''
+        "gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}"
 
 # runs for ~2 min with 8 cores, total 32G memory (2 threads per job)
 rule all_populations:
@@ -317,11 +317,11 @@ rule populations:
         "out/gstacks/{species}/catalog.calls"
     output:
         "out/populations/{species}/populations.log"
+    envmodules:
+        "gcc/7.1.0-fasrc01",
+        "stacks/2.4-fasrc01"
     threads: 2
     shell:
-        '''
-        module load gcc/7.1.0-fasrc01 stacks/2.4-fasrc01
-        populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv -O out/populations/{wildcards.species} -t {threads}
-        '''
+        "populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv -O out/populations/{wildcards.species} -t {threads}"
 
 ################
