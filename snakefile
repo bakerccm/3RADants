@@ -367,18 +367,15 @@ rule populations_2:
         '''
         populations -P out/gstacks/{wildcards.species} -M {input.popmap} \
         --min_maf {params.min_maf} --max_obs_het {params.max_obs_het} -r {params.r} \
-        -O out/populations_2/{wildcards.species} -t {threads} --genepop --write_random_snp
+        -O out/populations_2/{wildcards.species} -t {threads} --genepop --write_random_snp --structure --vcf
         '''
 
 rule genepopper_2:
     input:
         "out/populations_2/{species}/populations.snps.genepop"
     output:
-        log = "out/populations_2/{species}/genepopper.log",
-        popmap = "out/popmaps_3/{species}.tsv"
-    params:
-        cutoff = 0.1
+        log = "out/populations_2/{species}/genepopper.log"
     shell:
-        "code/genepopper.pl -i {input} -o {output.log} -c {params.cutoff} -p {output.popmap}"
+        "code/genepopper.pl -i {input} -o {output.log}"
 
 ################
