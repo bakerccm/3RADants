@@ -78,7 +78,8 @@ foreach (keys %data_hash) {
   $missing_data += $data_hash{$_}
 }
 my $print_this = 1 - $missing_data / $individuals;
-print OUTPUT_LOG "The total number of SNPs is $length.
+print OUTPUT_LOG "Input file: $input_file
+The total number of SNPs is $length.
 The total number of individuals is $individuals.
 The total proportion of missing data is $print_this\n";
 foreach my $proportion (.1, .2, .5, .8, .9, 1) {
