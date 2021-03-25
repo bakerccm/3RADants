@@ -334,7 +334,7 @@ rule genepopper_1:
     input:
         "out/populations_1/{species}/populations.snps.genepop"
     output:
-        log = "out/populations_1/{species}/populations.log",
+        log = "out/populations_1/{species}/genepopper.log",
         popmap = "out/popmaps_2/{species}.tsv"
     params:
         cutoff = 0.1
