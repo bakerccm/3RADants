@@ -353,8 +353,8 @@ rule populations_2:
         "out/gstacks/{species}/catalog.calls",
         popmap = "out/popmaps_2/{species}.tsv"
     output:
-        "out/populations_1/{species}/populations.log",
-        "out/populations_1/{species}/populations.snps.genepop"
+        "out/populations_2/{species}/populations.log",
+        "out/populations_2/{species}/populations.snps.genepop"
     envmodules:
         "gcc/7.1.0-fasrc01",
         "stacks/2.4-fasrc01"
