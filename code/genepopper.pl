@@ -103,31 +103,6 @@ if (defined $cutoff) {
 }
 
 ###-------------------------------------------------------------------------###
-###                        Write out the sbatch file                        ###
-###-------------------------------------------------------------------------###
-#if (defined $r_parameter) {
-#  print SBATCH "#!/bin/tcsh
-#PBS -l nodes=1:hima:ppn=1
-#PBS -l walltime=72:00:00
-#PBS -N S$run_id
-#PBS -j oe
-#PBS -m ae
-#PBS -M john.h.boyle\@gmail.com
-
-# This is step $run_id in the stacks pipeline
-
-#cd \$PBS_O_WORKDIR
-#module load gcc/7.2.0
-
-#/sciclone/home2/jhboyle/programs/stacks/bin/populations -P ref_map_output \\
-#  -b 1 \\
-#  -O . \\
-#  -M population_map_$id \\
-#  -r $r_parameter \\
-#  --genepop\n\n"
-#}
-
-###-------------------------------------------------------------------------###
 ###                               Denitialize                               ###
 ###-------------------------------------------------------------------------###
 close OUTPUT_LOG; close OUTPUT_POPMAP; close INPUT
