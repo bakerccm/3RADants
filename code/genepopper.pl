@@ -14,20 +14,22 @@ use strict; use warnings; use Getopt::Long;
 ###                                Initialize                               ###
 ###-------------------------------------------------------------------------###
 
-my ($input_file, $help, $cutoff, $output_file, $run_id, $r_parameter); my %data_hash;
+my ($input_file, $help, $cutoff, $output_popmap_file, $run_id, $r_parameter); my %data_hash;
 GetOptions ('input|i:s' => \$input_file,
             'run_id|u:s' => \$run_id,
-	    'help|h' => \$help,
-	    'cutoff|c:f' => \$cutoff,
-        'output|o:s' => \$output_file,
-	    'r_parameter|r:f' => \$r_parameter);
+        'output|o:s' => \$output_log_file,
+        'help|h' => \$help,
+        'cutoff|c:f' => \$cutoff,
+        'popmap|p:s' => \$output_popmap_file,
+        'r_parameter|r:f' => \$r_parameter);
 
 if ($help) {die "This script looks at the genepop-formatted output file from
 the populations step of stacks and outputs some important information.
   -i provides the genepop file to look at.
+  -o filepath for output log file.
   -c (optional) writes a stacks populations map including only those
      individuals with genotypes for >= the provided proportion of SNPs.
-  -o (optional; required if -c supplied) filepath for output population map file.
+  -p (optional; required if -c supplied) filepath for output population map file.
   -r (optional) writes a qsub file to run stacks' population program with
      the -r parameter given.
   -R (optional) the run ID for out files from the qsub file.
@@ -36,15 +38,18 @@ the populations step of stacks and outputs some important information.
 open (INPUT, '<', $input_file) or die "
 Unable to open the genepop file $input_file.\n";
 
+open (OUTPUT_LOG, '>', "$output_log_file") or die "
+Unable to open the file $output_log_file.\n";
+
 if (defined $cutoff) {
-  unless (defined $output_file) {die "
+  unless (defined $output_popmap_file) {die "
 If you use the cutoff option, you must specify an output file path with -o.\n"}
   unless (($cutoff <= 1) and ($cutoff >= 0)) {die "
 The cutoff value must be a proportion between 0 and 1.\n"}
-  if (-e "$output_file") {die "
-Cannot write to $output_file: this file already exists.\n"}
-  open (POPULATIONS, '>', "$output_file") or die "
-Cannot open the file $output_file.\n";
+  if (-e "$output_popmap_file") {die "
+Cannot write to $output_popmap_file: this file already exists.\n"}
+  open (OUTPUT_POPMAP, '>', "$output_popmap_file") or die "
+Cannot open the file $output_popmap_file.\n";
 }
 
 #if (defined $r_parameter) {
@@ -101,7 +106,7 @@ foreach my $proportion (.1, .2, .5, .8, .9, 1) {
       $counter += 1
     }
   }
-  print STDOUT "$counter individuals have a genotype for $percentage% of these SNPs.\n"
+  print OUTPUT_LOG "$counter individuals have a genotype for $percentage% of these SNPs.\n"
 }
 ### END TESTED PART ###
 
@@ -111,7 +116,7 @@ foreach my $proportion (.1, .2, .5, .8, .9, 1) {
 if (defined $cutoff) {
   foreach (keys %data_hash) {
     if ($data_hash{$_} >= $cutoff) {
-      print POPULATIONS "$_\t1\n"
+      print OUTPUT_POPMAP "$_\t1\n"
     }
   }
 }
@@ -144,4 +149,4 @@ if (defined $cutoff) {
 ###-------------------------------------------------------------------------###
 ###                               Denitialize                               ###
 ###-------------------------------------------------------------------------###
-close POPULATIONS; close SBATCH; close INPUT
+close OUTPUT_LOG; close OUTPUT_POPMAP; close INPUT
