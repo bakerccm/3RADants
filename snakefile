@@ -367,7 +367,7 @@ rule populations_2:
         '''
         populations -P out/gstacks/{wildcards.species} -M {input.popmap} \
         --min_maf {params.min_maf} --max_obs_het {params.max_obs_het} -r {params.r} \
-        -O out/populations_1/{wildcards.species} -t {threads} --genepop --write_random_snp
+        -O out/populations_2/{wildcards.species} -t {threads} --genepop --write_random_snp
         '''
 
 rule genepopper_2:
