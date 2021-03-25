@@ -282,8 +282,8 @@ rule make_population_maps:
         popmap.to_csv("out/popmaps_1/" + wildcards.species + ".tsv", index = False, sep = "\t", header = False)
 
 ################
-# run gstacks and populations
-# these rules replace a single run of ref_map.pl:
+# run gstacks
+# this (plus populations_1) replaces a single run of ref_map.pl:
 #   ref_map.pl --samples out/mapped --popmap out/population_maps/TP.tsv -o out/gstacks -T 8 -d
 
 # runs for ~20 min with 8 cores, total 32G memory (2 threads per job)
@@ -305,6 +305,9 @@ rule gstacks:
     threads: 2
     shell:
         "gstacks -I out/mapped -M {input.popmap} -O out/gstacks/{wildcards.species} -t {threads}"
+
+################
+# populations run #1
 
 # runs for ~2 min with 8 cores, total 32G memory (2 threads per job)
 rule all_populations_1:
@@ -341,6 +344,41 @@ rule genepopper_1:
     shell:
         "code/genepopper.pl -i {input} -o {output.log} -c {params.cutoff} -p {output.popmap}"
 
+################
+# populations run #2
 
+rule populations_2:
+    input:
+        "out/gstacks/{species}/catalog.fa.gz",
+        "out/gstacks/{species}/catalog.calls",
+        popmap = "out/popmaps_2/{species}.tsv"
+    output:
+        "out/populations_1/{species}/populations.log",
+        "out/populations_1/{species}/populations.snps.genepop"
+    envmodules:
+        "gcc/7.1.0-fasrc01",
+        "stacks/2.4-fasrc01"
+    params:
+        min_maf = 0.02,
+        max_obs_het = 0.60,
+        r = 0.5
+    threads: 2
+    shell:
+        '''
+        populations -P out/gstacks/{wildcards.species} -M {input.popmap} \
+        --min_maf {params.min_maf} --max_obs_het {params.max_obs_het} -r {params.r} \
+        -O out/populations_1/{wildcards.species} -t {threads} --genepop --write_random_snp
+        '''
+
+rule genepopper_2:
+    input:
+        "out/populations_2/{species}/populations.snps.genepop"
+    output:
+        log = "out/populations_2/{species}/genepopper.log",
+        popmap = "out/popmaps_3/{species}.tsv"
+    params:
+        cutoff = 0.1
+    shell:
+        "code/genepopper.pl -i {input} -o {output.log} -c {params.cutoff} -p {output.popmap}"
 
 ################
