@@ -14,7 +14,7 @@ use strict; use warnings; use Getopt::Long;
 ###                                Initialize                               ###
 ###-------------------------------------------------------------------------###
 
-my ($input_file, $help, $cutoff, $output_popmap_file, $run_id, $r_parameter); my %data_hash;
+my ($input_file, $output_log_file, $help, $cutoff, $output_popmap_file, $run_id, $r_parameter); my %data_hash;
 GetOptions ('input|i:s' => \$input_file,
             'run_id|u:s' => \$run_id,
         'output|o:s' => \$output_log_file,
