@@ -275,11 +275,11 @@ rule make_population_maps:
     input:
         "config/sample_tags.csv"
     output:
-        "out/population_maps/{species}.tsv"
+        "out/popmaps_1/{species}.tsv"
     run:
         popmap = SAMPLES[SAMPLES.species == wildcards.species].index.to_frame(index=False)
         popmap['population'] = 1
-        popmap.to_csv("out/population_maps/" + wildcards.species + ".tsv", index = False, sep = "\t", header = False)
+        popmap.to_csv("out/popmaps_1/" + wildcards.species + ".tsv", index = False, sep = "\t", header = False)
 
 ################
 # run gstacks and populations
@@ -295,7 +295,7 @@ rule all_gstacks:
 rule gstacks:
     input:
         lambda wildcards: ["out/mapped/" + sample + ".bam" for sample in list(SAMPLES[SAMPLES.species == wildcards.species].index)],
-        popmap = "out/population_maps/{species}.tsv"
+        popmap = "out/popmaps_1/{species}.tsv"
     output:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls"
@@ -315,17 +315,32 @@ rule all_populations_1:
 rule populations_1:
     input:
         "out/gstacks/{species}/catalog.fa.gz",
-        "out/gstacks/{species}/catalog.calls"
+        "out/gstacks/{species}/catalog.calls",
+        popmap = "out/population_maps/{species}.tsv"
     output:
-        "out/populations_1/{species}/populations.log"
+        "out/populations_1/{species}/populations.log",
+        "out/populations_1/{species}/populations.snps.genepop"
     envmodules:
         "gcc/7.1.0-fasrc01",
         "stacks/2.4-fasrc01"
     threads: 2
     shell:
         '''
-        populations -P out/gstacks/{wildcards.species} -M out/population_maps/{wildcards.species}.tsv \
+        populations -P out/gstacks/{wildcards.species} -M {input.popmap} \
         -O out/populations_1/{wildcards.species} -t {threads} --genepop
         '''
+
+rule genepopper_1:
+    input:
+        "out/populations_1/{species}/populations.snps.genepop"
+    output:
+        log = "out/populations_1/{species}/populations.log",
+        popmap = "out/popmaps_2/{species}.tsv"
+    params:
+        cutoff = 0.1
+    shell:
+        "code/genepopper.pl -i {input} -o {output.log} -c {params.cutoff} -p {output.popmap}"
+
+
 
 ################
