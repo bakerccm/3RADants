@@ -316,7 +316,7 @@ rule populations_1:
     input:
         "out/gstacks/{species}/catalog.fa.gz",
         "out/gstacks/{species}/catalog.calls",
-        popmap = "out/population_maps/{species}.tsv"
+        popmap = "out/popmaps_1/{species}.tsv"
     output:
         "out/populations_1/{species}/populations.log",
         "out/populations_1/{species}/populations.snps.genepop"
