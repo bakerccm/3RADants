@@ -47,17 +47,17 @@ Cannot write to $output_file: this file already exists.\n"}
 Cannot open the file $output_file.\n";
 }
 
-if (defined $r_parameter) {
-  unless (defined $id) {die "
-If you use the r_parameter option, you must specify an id with -n.\n"}
-  unless (($r_parameter <= 1) and ($r_parameter >=0)) {die "
-The -r parameter must be a proportion between 0 and 1.\n"}
-  if (-e "run_populations_$id.sbatch") {die "
-Cannot write a file named run_populations_$id.sbatch:
-this file already exists.\n"}
-  open (SBATCH, '>', "run_$run_id" . "_pop$id.qsub") or die "
-Cannot open the file run_populations_$id.sbatch.\n"
-}
+#if (defined $r_parameter) {
+#  unless (defined $id) {die "
+#If you use the r_parameter option, you must specify an id with -n.\n"}
+#  unless (($r_parameter <= 1) and ($r_parameter >=0)) {die "
+#The -r parameter must be a proportion between 0 and 1.\n"}
+#  if (-e "run_populations_$id.sbatch") {die "
+#Cannot write a file named run_populations_$id.sbatch:
+#this file already exists.\n"}
+#  open (SBATCH, '>', "run_$run_id" . "_pop$id.qsub") or die "
+#Cannot open the file run_populations_$id.sbatch.\n"
+#}
 
 ###-------------------------------------------------------------------------###
 ###                        Read in the genepop file                         ###
@@ -119,8 +119,8 @@ if (defined $cutoff) {
 ###-------------------------------------------------------------------------###
 ###                        Write out the sbatch file                        ###
 ###-------------------------------------------------------------------------###
-if (defined $r_parameter) {
-  print SBATCH "#!/bin/tcsh
+#if (defined $r_parameter) {
+#  print SBATCH "#!/bin/tcsh
 #PBS -l nodes=1:hima:ppn=1
 #PBS -l walltime=72:00:00
 #PBS -N S$run_id
@@ -130,16 +130,16 @@ if (defined $r_parameter) {
 
 # This is step $run_id in the stacks pipeline
 
-cd \$PBS_O_WORKDIR
-module load gcc/7.2.0
+#cd \$PBS_O_WORKDIR
+#module load gcc/7.2.0
 
-/sciclone/home2/jhboyle/programs/stacks/bin/populations -P ref_map_output \\
-  -b 1 \\
-  -O . \\
-  -M population_map_$id \\
-  -r $r_parameter \\
-  --genepop\n\n"
-}
+#/sciclone/home2/jhboyle/programs/stacks/bin/populations -P ref_map_output \\
+#  -b 1 \\
+#  -O . \\
+#  -M population_map_$id \\
+#  -r $r_parameter \\
+#  --genepop\n\n"
+#}
 
 ###-------------------------------------------------------------------------###
 ###                               Denitialize                               ###
