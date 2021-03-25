@@ -41,8 +41,6 @@ if (defined $cutoff) {
 If you use the cutoff option, you must specify an output file path with -o.\n"}
   unless (($cutoff <= 1) and ($cutoff >= 0)) {die "
 The cutoff value must be a proportion between 0 and 1.\n"}
-  if (-e "$output_popmap_file") {die "
-Cannot write to $output_popmap_file: this file already exists.\n"}
   open (OUTPUT_POPMAP, '>', "$output_popmap_file") or die "
 Cannot open the file $output_popmap_file.\n";
 }
